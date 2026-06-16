@@ -1,5 +1,5 @@
 /* Day Planner — Service Worker (offline support) */
-const CACHE = 'day-planner-v18';
+const CACHE = 'day-planner-v22';
 const ASSETS = [
   './',
   './index.html',
@@ -34,9 +34,17 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
       return fetch(e.request).then((resp) => {
-        // Cache successful same-origin and CDN font/CSS responses
+        // Cache successful same-origin and CDN font/CSS responses.
+        // Use a proper hostname check rather than a substring match —
+        // url.includes('cdn.jsdelivr.net') would also match a crafted URL
+        // like https://evil.com/cdn.jsdelivr.net.attacker.com/payload.js.
         const url = e.request.url;
-        if (resp.ok && (url.startsWith(self.location.origin) || url.includes('cdn.jsdelivr.net'))) {
+        let isAllowedCdn = false;
+        try {
+          const h = new URL(url).hostname;
+          isAllowedCdn = h === 'cdn.jsdelivr.net';
+        } catch (err) {}
+        if (resp.ok && (url.startsWith(self.location.origin) || isAllowedCdn)) {
           const copy = resp.clone();
           caches.open(CACHE).then((cache) => cache.put(e.request, copy));
         }

@@ -74,9 +74,14 @@ function doSignIn(){
       btn.disabled=false;btn.textContent='Sign In';
       if(msg){
         msg.style.color='var(--red)';
-        msg.textContent=(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential')
-          ? 'No account with this email. Tap "Create account" below.'
-          : (e.code==='auth/wrong-password' ? 'Incorrect password.' : (e.message||'Sign-in failed.'));
+        /* Use one generic message for both "no such user" and "wrong password".
+           Returning different messages for each lets an attacker enumerate
+           which email addresses have an account on this app, just by trying
+           to sign in with no real password — a real, low-effort privacy leak. */
+        const noAccountOrBadPass=['auth/user-not-found','auth/invalid-credential','auth/wrong-password'].includes(e.code);
+        msg.textContent=noAccountOrBadPass
+          ? 'Incorrect email or password.'
+          : (e.code==='auth/too-many-requests' ? 'Too many attempts. Try again later.' : (e.message||'Sign-in failed.'));
       }
     });
 }
@@ -85,7 +90,7 @@ function doRegister(){
   const pass=document.getElementById('login-pass').value;
   const msg=document.getElementById('login-msg');
   if(!email||!pass){if(msg){msg.style.color='var(--red)';msg.textContent='Enter email and password.';}return;}
-  if(pass.length<6){if(msg){msg.style.color='var(--red)';msg.textContent='Password must be at least 6 characters.';}return;}
+  if(pass.length<8){if(msg){msg.style.color='var(--red)';msg.textContent='Password must be at least 8 characters.';}return;}
   const btn=document.getElementById('register-btn');
   btn.disabled=true;btn.textContent='Creating…';
   auth.createUserWithEmailAndPassword(email,pass)
@@ -1241,6 +1246,22 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 function getSheetId(u){if(!u)return null;const m=u.match(/\/d\/([a-zA-Z0-9-_]+)/);if(m)return m[1];if(/^[a-zA-Z0-9-_]{20,}$/.test(u.trim()))return u.trim();return null;}
 function showMsg(html,type){const el=document.getElementById('save-msg');el.innerHTML=`<div class="msg ${type}">${html}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},7000);}
 
+function isValidAppsScriptUrl(u){
+  /* A plain substring check like u.includes('script.google.com') can be
+     bypassed by a crafted URL such as https://evil.com/?x=script.google.com
+     or https://script.google.com.evil.com/..., either of which would send
+     your personal goals/habits/schedule data to an attacker's server
+     instead of your real Apps Script endpoint. Parse the URL properly and
+     check the actual hostname instead. */
+  try{
+    const parsed=new URL(u);
+    return parsed.protocol==='https:'&&
+           (parsed.hostname==='script.google.com'||parsed.hostname.endsWith('.script.google.com'));
+  }catch(e){
+    return false;
+  }
+}
+
 async function saveToSheet(){
   const urlVal=document.getElementById('sheet-url').value.trim();
   const tabName=document.getElementById('sheet-tab').value.trim()||'Daily Log';
@@ -1256,7 +1277,7 @@ async function saveToSheet(){
    ...ALL_SLOTS.map(t=>{const s=slots[t]||{};const doneVal=(s.done||'').trim();const planVal=(s.plan||'').trim();const sheetDone=s.completed?doneVal||planVal:doneVal&&doneVal!==planVal?doneVal:'';return[date,'Slot','',t,slotStatus(s),sheetDone];})
   ].forEach(r=>rows.push(r));
 
-  if(urlVal.includes('script.google.com')){
+  if(isValidAppsScriptUrl(urlVal)){
     try{
       showMsg('Saving...','success');
       const resp=await fetch(urlVal,{method:'POST',body:JSON.stringify({sheetId:getSheetId(urlVal)||'',tabName,rows}),headers:{'Content-Type':'text/plain;charset=utf-8'}});
