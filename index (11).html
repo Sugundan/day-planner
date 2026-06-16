@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Day Planner">
+<meta name="theme-color" content="#1D9E75">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>Day Planner</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAmlk6DkkpRqCW9pEz_XTUeppVqa2P6XEs",
+  authDomain: "my-apps-38e2a.firebaseapp.com",
+  projectId: "my-apps-38e2a",
+  storageBucket: "my-apps-38e2a.firebasestorage.app",
+  messagingSenderId: "1031816461796",
+  appId: "1:1031816461796:web:52e89fd6685fba6fe61bf1"
+});
+const db = firebase.firestore();
+const auth = firebase.auth();
+let fbUserId = null;
+let fbUnsubscribe = null;
+
+function showSyncStatus(state){
+  const el=document.getElementById('sync-dot');
+  if(!el)return;
+  const colors={syncing:'#EF9F27',synced:'#1D9E75',offline:'#A32D2D'};
+  const labels={syncing:'Syncing…',synced:'Synced ✓',offline:'Offline'};
+  el.style.background=colors[state]||'#ccc';el.title=labels[state]||'';
+}
+function showLoginOverlay(){
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('app-shell').style.display='none';
+}
+function hideLoginOverlay(){
+  document.getElementById('login-overlay').style.display='none';
+  document.getElementById('app-shell').style.display='block';
+}
+function doSignIn(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const msg=document.getElementById('login-msg');
+  if(!email||!pass){if(msg){msg.style.color='var(--red)';msg.textContent='Enter email and password.';}return;}
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Signing in…';
+  auth.signInWithEmailAndPassword(email,pass)
+    .then(cred=>{
+      fbUserId=cred.user.uid;
+      hideLoginOverlay();
+      listenFirebase();
+      showSyncStatus('synced');
+      const lbl=document.getElementById('user-email-label');
+      if(lbl)lbl.textContent=cred.user.email;
+    })
+    .catch(e=>{
+      btn.disabled=false;btn.textContent='Sign In';
+      if(msg){
+        msg.style.color='var(--red)';
+        msg.textContent=(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential')
+          ? 'No account with this email. Tap "Create account" below.'
+          : (e.code==='auth/wrong-password' ? 'Incorrect password.' : (e.message||'Sign-in failed.'));
+      }
+    });
+}
+function doRegister(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const msg=document.getElementById('login-msg');
+  if(!email||!pass){if(msg){msg.style.color='var(--red)';msg.textContent='Enter email and password.';}return;}
+  if(pass.length<6){if(msg){msg.style.color='var(--red)';msg.textContent='Password must be at least 6 characters.';}return;}
+  const btn=document.getElementById('register-btn');
+  btn.disabled=true;btn.textContent='Creating…';
+  auth.createUserWithEmailAndPassword(email,pass)
+    .then(cred=>{
+      fbUserId=cred.user.uid;
+      hideLoginOverlay();
+      listenFirebase();
+      showSyncStatus('synced');
+      const lbl=document.getElementById('user-email-label');
+      if(lbl)lbl.textContent=cred.user.email;
+    })
+    .catch(e=>{
+      btn.disabled=false;btn.textContent='Create account';
+      if(msg){
+        msg.style.color='var(--red)';
+        msg.textContent=(e.code==='auth/email-already-in-use')
+          ? 'Account already exists. Tap "Sign In" instead.'
+          : (e.message||'Could not create account.');
+      }
+    });
+}
+function doSignOut(){
+  auth.signOut().then(()=>{
+    fbUserId=null;
+    if(fbUnsubscribe){fbUnsubscribe();fbUnsubscribe=null;}
+    showLoginOverlay();
+  });
+}
+function loginKeydown(e){if(e.key==='Enter')doSignIn();}
+auth.onAuthStateChanged(user=>{
+  if(user){
+    fbUserId=user.uid;
+    hideLoginOverlay();
+    listenFirebase();
+    showSyncStatus('synced');
+    const lbl=document.getElementById('user-email-label');
+    if(lbl)lbl.textContent=user.email;
+  } else {
+    showLoginOverlay();
+  }
+});
+</script>
+<style>
+:root {
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0f0ec;
+  --text:#1a1a18;--text2:#6b6b67;--text3:#9e9e9a;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#0F6E56;
+  --plan-bg:#FFF8EE;--plan-border:#EF9F27;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+  --blue-bg:#E8F0FE;--blue-text:#1A56DB;
+  --purple-bg:#F3EDFC;--purple-text:#6B21A8;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-border:#F09595;
+  --teal-bg:#E0F7F2;--teal-text:#0D7A5F;
+  --slate-bg:#EFF2F7;--slate-text:#3D5A7A;
+  --stop-bg:#FFF0F0;--stop-text:#C0392B;--stop-border:#F5BCBC;
+  --r:10px;--rlg:14px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --text:#f0f0ec;--text2:#a0a09c;--text3:#6b6b67;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+    --green-bg:#0a3d2a;--green-text:#5DCAA5;
+    --plan-bg:#2e2310;--plan-border:#EF9F27;
+    --amber-bg:#3d2d0a;--amber-text:#FAC775;
+    --blue-bg:#0d1f4a;--blue-text:#93B4F8;
+    --purple-bg:#1e0a3d;--purple-text:#C084FC;
+    --red-bg:#3d0a0a;--red-border:#993535;
+    --teal-bg:#0a2e28;--teal-text:#5DCAA5;
+    --slate-bg:#1a2333;--slate-text:#7BA5D4;
+    --stop-bg:#3d0a0a;--stop-text:#F5BCBC;--stop-border:#993535;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:16px}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg3)}
+
+/* Header */
+.header{padding:16px 16px 0;background:var(--bg);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.app-title{font-size:18px;font-weight:600;color:var(--text)}
+.app-title i{font-size:18px;vertical-align:-2px;margin-right:6px;color:var(--green)}
+.nav-tabs{display:flex}
+.tab{flex:1;padding:10px 0;font-size:12px;font-weight:500;border:none;border-bottom:2.5px solid transparent;background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:inherit;white-space:nowrap}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* Sections */
+.section{display:none;padding:16px;padding-bottom:80px}
+.section.active{display:block}
+
+/* Internal toggle (Work / Life) */
+.int-toggle{display:flex;background:var(--bg2);border-radius:var(--r);padding:3px;gap:3px;margin-bottom:16px}
+.int-btn{flex:1;padding:7px 0;font-size:13px;font-weight:500;border:none;border-radius:8px;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.int-btn.active-work{background:var(--amber-bg);color:var(--amber-text)}
+.int-btn.active-life{background:var(--teal-bg);color:var(--teal-text)}
+
+/* Section header */
+.section-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.section-sub{font-size:13px;color:var(--text2);margin-bottom:16px}
+.goals-actions{display:none;gap:8px;margin-bottom:12px}
+.goals-actions.visible{display:flex}
+.act-btn{flex:1;padding:8px 0;font-size:12px;font-weight:500;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit}
+.act-btn:active{background:var(--bg2)}
+.act-btn.active{background:var(--green-bg);color:var(--green-text);border-color:#5DCAA5}
+
+/* Goal / habit items */
+.goal-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;transition:border-color 0.15s,background 0.15s}
+.goal-item.drag-over{border-color:var(--green);background:var(--green-bg)}
+.drag-handle{color:var(--text3);cursor:grab;font-size:20px;display:none;flex-shrink:0;touch-action:none}
+.reorder-mode .drag-handle{display:block}
+.move-btns{display:none;flex-direction:column;gap:2px;flex-shrink:0}
+.reorder-mode .move-btns{display:flex}
+.move-btn{background:none;border:0.5px solid var(--border);border-radius:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:11px;padding:0;font-family:inherit}
+.move-btn:disabled{opacity:0.2}
+.goal-cb{width:22px;height:22px;border-radius:5px;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.goal-cb.checked{background:var(--green);border-color:var(--green)}
+.goal-cb.checked::after{content:'\2713';color:#fff;font-size:13px;font-weight:700}
+.reorder-mode .goal-cb{display:none}
+.goal-input{flex:1;border:none;background:transparent;font-size:15px;color:var(--text);outline:none;font-family:inherit;min-width:0}
+.goal-input::placeholder{color:var(--text3)}
+.goal-input.done{text-decoration:line-through;color:var(--text3)}
+.reorder-mode .goal-input{color:var(--text2)}
+/* Only done goals show delete — enforced in JS */
+.goal-del{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;font-size:20px;line-height:1;flex-shrink:0}
+.reorder-mode .goal-del{display:none}
+.add-goal-btn{width:100%;padding:11px;border:0.5px dashed var(--border2);border-radius:var(--r);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;font-family:inherit}
+.add-goal-btn:active{background:var(--bg2)}
+.done-header{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+
+/* Habits */
+.habit-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;padding:4px 8px;border-radius:6px;margin-bottom:8px;display:inline-flex;align-items:center;gap:5px}
+.habit-section-label.grow{background:var(--green-bg);color:var(--green-text)}
+.habit-section-label.stop{background:var(--stop-bg);color:var(--stop-text)}
+.habit-cb{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.habit-cb.grow-cb.checked{background:var(--green);border-color:var(--green)}
+.habit-cb.stop-cb.checked{background:var(--stop-text);border-color:var(--stop-text)}
+.habit-cb.checked::after{content:'\2713';color:#fff;font-size:13px;font-weight:700}
+.reorder-mode .habit-cb{display:none}
+.habit-input.ticked{text-decoration:line-through;color:var(--text3)}
+/* Habits are never deleted — no delete button shown */
+
+/* Schedule sub-tabs */
+.sub-tabs{display:flex;gap:8px;margin-bottom:14px}
+.sub-tab{flex:1;padding:8px 0;font-size:13px;font-weight:500;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.15s}
+.sub-tab.active.work{background:var(--amber-bg);color:var(--amber-text);border-color:#EF9F27}
+.sub-tab.active.life{background:var(--teal-bg);color:var(--teal-text);border-color:#1D9E75}
+.sub-tab.active.all{background:var(--green-bg);color:var(--green-text);border-color:#5DCAA5}
+
+/* Holiday banner */
+.holiday-bar{display:flex;align-items:center;justify-content:space-between;background:var(--teal-bg);border:0.5px solid var(--green);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;gap:10px}
+.holiday-bar span{font-size:13px;font-weight:600;color:var(--teal-text)}
+.holiday-toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggle-track{width:40px;height:22px;border-radius:11px;background:var(--border2);position:relative;transition:background 0.2s;flex-shrink:0}
+.toggle-track.on{background:var(--green)}
+.toggle-thumb{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle-track.on .toggle-thumb{left:20px}
+
+/* Schedule table */
+.sched-row{display:grid;grid-template-columns:56px 1fr 1fr 36px;border-bottom:0.5px solid var(--border);align-items:stretch}
+.sched-row:last-child{border-bottom:none}
+.sched-row.header-row{background:var(--bg2)}
+.sched-row.completed{background:var(--green-bg)}
+.sched-row.has-content{background:var(--plan-bg);border-left:3px solid var(--plan-border)}
+.sched-row.has-content .sched-time{color:var(--text);font-weight:700}
+.sched-hcell{padding:8px 8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3)}
+.sched-hcell:not(:last-child){border-right:0.5px solid var(--border)}
+.sched-time{padding:6px 4px 6px 8px;font-size:11px;font-weight:600;color:var(--text2);border-right:0.5px solid var(--border);display:flex;flex-direction:column;justify-content:center;line-height:1.3}
+.sched-time span{font-weight:400;color:var(--text3);font-size:10px}
+.sched-time .abadge{font-size:9px;font-weight:700;color:var(--green-text);background:var(--green-bg);border-radius:3px;padding:1px 4px;margin-top:2px;white-space:nowrap}
+.sched-cell{border-right:0.5px solid var(--border);display:flex}
+.sched-ta{width:100%;border:none;background:transparent;font-size:14px;color:var(--text);font-family:inherit;resize:none;outline:none;padding:8px 8px;line-height:1.45;min-height:34px;overflow:hidden}
+.sched-ta::placeholder{color:var(--text3);font-size:13px}
+.sced-ta:focus{background:var(--bg2)}
+.sched-check{border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit}
+.sched-check .circ{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;transition:all 0.15s}
+.sched-row.completed .circ{background:var(--green);border-color:var(--green);color:#fff}
+.sched-row.morning-block{border-left:3px solid #F59E0B}
+.sched-row.evening-block{border-left:3px solid #8B5CF6}
+
+/* Period labels */
+.period-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:5px 10px;border-radius:var(--r);margin-bottom:8px;margin-top:12px;display:flex;align-items:center;gap:6px}
+.period-label:first-of-type{margin-top:0}
+.period-label.pre-work{background:var(--teal-bg);color:var(--teal-text)}
+.period-label.morning-work{background:var(--amber-bg);color:var(--amber-text)}
+.period-label.evening-work{background:var(--purple-bg);color:var(--purple-text)}
+.period-label.post-work{background:var(--slate-bg);color:var(--slate-text)}
+.period-label.holiday-life{background:var(--teal-bg);color:var(--teal-text)}
+
+/* Time settings */
+.time-settings-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);padding:14px;margin-bottom:14px}
+.time-settings-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.time-field{display:flex;flex-direction:column;gap:5px}
+.time-field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3)}
+.time-field input[type=time]{width:100%;border:0.5px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:15px;color:var(--text);background:var(--bg2);font-family:inherit;outline:none}
+.time-field input[type=time]:focus{border-color:var(--green)}
+.apply-times-btn{margin-top:12px;width:100%;padding:10px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.apply-times-btn:active{background:var(--green-text)}
+
+/* Summary card */
+.summary-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:12px}
+
+/* EOD */
+.eod-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);padding:16px;margin-bottom:12px}
+.eod-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.gs-label{font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.gs-input{width:100%;border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);background:var(--bg2);font-family:inherit;outline:none;margin-bottom:10px}
+.gs-input:focus{border-color:var(--green)}
+.btn-green{width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;font-family:inherit}
+.btn-green:active{background:var(--green-text)}
+.btn-red{width:100%;padding:13px;background:transparent;color:var(--red);border:0.5px solid var(--red-border);border-radius:var(--r);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-red:active{background:var(--red-bg)}
+.msg{font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:10px;text-align:center;line-height:1.5}
+.msg.success{background:var(--green-bg);color:var(--green-text)}
+.msg.error{background:var(--red-bg);color:var(--red)}
+.msg a{color:var(--green-text)}
+.divider{height:0.5px;background:var(--border);margin:16px 0}
+.info-note{background:var(--blue-bg);border:0.5px solid #85B7EB;border-radius:var(--r);padding:10px 12px;font-size:13px;color:var(--blue-text);line-height:1.6;margin-bottom:12px;display:flex;gap:8px}
+@keyframes bump{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
+.bumped{animation:bump 0.2s ease}
+</style>
+</head>
+<body>
+
+<!-- Login overlay -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:var(--bg3);z-index:999;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px">
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:32px">
+      <svg width="52" height="52" viewBox="0 0 80 80" style="display:block;margin:0 auto 12px"><rect width="80" height="80" rx="18" fill="#1D9E75"/><rect x="22" y="18" width="36" height="44" rx="5" fill="none" stroke="white" stroke-width="2.5"/><line x1="22" y1="28" x2="58" y2="28" stroke="white" stroke-width="2"/><rect x="28" y="14" width="6" height="8" rx="2" fill="white"/><rect x="46" y="14" width="6" height="8" rx="2" fill="white"/><line x1="30" y1="38" x2="50" y2="38" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="30" y1="46" x2="44" y2="46" stroke="white" stroke-width="2" stroke-linecap="round"/><polyline points="29,53 32,56 38,50" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div style="font-size:22px;font-weight:700;color:var(--text)">Day Planner</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Sign in to sync across devices</div>
+    </div>
+    <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);padding:24px">
+      <div class="gs-label">Email</div>
+      <input class="gs-input" id="login-email" type="email" placeholder="you@example.com" onkeydown="loginKeydown(event)" autocomplete="email" />
+      <div class="gs-label">Password</div>
+      <input class="gs-input" id="login-pass" type="password" placeholder="Password" onkeydown="loginKeydown(event)" autocomplete="current-password" />
+      <div id="login-msg" style="font-size:13px;min-height:18px;margin-bottom:12px;color:var(--red);line-height:1.4"></div>
+      <button id="login-btn" onclick="doSignIn()" style="width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:10px">Sign In</button>
+      <button id="register-btn" onclick="doRegister()" style="width:100%;padding:13px;background:transparent;color:var(--green-text);border:0.5px solid var(--green);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">Create account</button>
+    </div>
+  </div>
+</div>
+
+<div id="app-shell" style="display:none">
+<div class="app">
+
+  <div class="header">
+    <div class="header-top">
+      <span class="app-title"><svg width="22" height="22" viewBox="0 0 80 80" style="vertical-align:-5px;margin-right:7px"><rect width="80" height="80" rx="18" fill="#1D9E75"/><rect x="22" y="18" width="36" height="44" rx="5" fill="none" stroke="white" stroke-width="2.5"/><line x1="22" y1="28" x2="58" y2="28" stroke="white" stroke-width="2"/><rect x="28" y="14" width="6" height="8" rx="2" fill="white"/><rect x="46" y="14" width="6" height="8" rx="2" fill="white"/><line x1="30" y1="38" x2="50" y2="38" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="30" y1="46" x2="44" y2="46" stroke="white" stroke-width="2" stroke-linecap="round"/><polyline points="29,53 32,56 38,50" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Day Planner <span id="sync-dot" title="Sync" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ccc;margin-left:4px;vertical-align:1px;transition:background 0.3s"></span></span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="user-email-label" style="font-size:11px;color:var(--text3);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <button onclick="doSignOut()" title="Sign out" style="background:none;border:0.5px solid var(--border2);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit">Out</button>
+        <input type="date" id="todayDate" style="font-size:12px;color:var(--text2);background:transparent;border:0.5px solid var(--border);border-radius:6px;padding:3px 7px;font-family:inherit;outline:none;cursor:pointer" onchange="onDateChange()" />
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="tab" onclick="switchTab('goals')">Goals</button>
+      <button class="tab" onclick="switchTab('habits')">Habits</button>
+      <button class="tab active" onclick="switchTab('slots')">Schedule</button>
+      <button class="tab" onclick="switchTab('eod')">End of Day</button>
+    </div>
+  </div>
+
+  <!-- GOALS -->
+  <div class="section" id="tab-goals">
+    <div class="int-toggle">
+      <button class="int-btn active-work" id="gToggleWork" onclick="switchGoalMode('work')">
+        <i class="ti ti-briefcase"></i> Work
+      </button>
+      <button class="int-btn" id="gToggleLife" onclick="switchGoalMode('life')">
+        <i class="ti ti-home"></i> Life
+      </button>
+    </div>
+    <div id="goals-work-panel">
+      <div class="section-title">Work Goals</div>
+      <div class="section-sub">Up to 5 pending — only completed goals can be deleted</div>
+      <div class="goals-actions" id="goals-actions-work">
+        <button class="act-btn" id="reorder-btn-work" onclick="toggleReorder('work')">
+          <i class="ti ti-arrows-sort"></i> Reorder
+        </button>
+      </div>
+      <div id="goals-list-work"></div>
+      <button class="add-goal-btn" id="add-goal-btn-work" onclick="addGoal('work')">
+        <i class="ti ti-plus"></i> Add work goal
+      </button>
+      <div id="done-section-work" style="display:none;margin-top:16px">
+        <div class="done-header"><i class="ti ti-check"></i> Completed</div>
+        <div id="done-list-work"></div>
+      </div>
+    </div>
+    <div id="goals-life-panel" style="display:none">
+      <div class="section-title">Life Goals</div>
+      <div class="section-sub">Up to 5 pending — only completed goals can be deleted</div>
+      <div class="goals-actions" id="goals-actions-life">
+        <button class="act-btn" id="reorder-btn-life" onclick="toggleReorder('life')">
+          <i class="ti ti-arrows-sort"></i> Reorder
+        </button>
+      </div>
+      <div id="goals-list-life"></div>
+      <button class="add-goal-btn" id="add-goal-btn-life" onclick="addGoal('life')">
+        <i class="ti ti-plus"></i> Add life goal
+      </button>
+      <div id="done-section-life" style="display:none;margin-top:16px">
+        <div class="done-header"><i class="ti ti-check"></i> Completed</div>
+        <div id="done-list-life"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="section" id="tab-habits">
+    <div class="int-toggle">
+      <button class="int-btn active-work" id="hToggleWork" onclick="switchHabitMode('work')">
+        <i class="ti ti-briefcase"></i> Work
+      </button>
+      <button class="int-btn" id="hToggleLife" onclick="switchHabitMode('life')">
+        <i class="ti ti-home"></i> Life
+      </button>
+    </div>
+    <!-- Work habits -->
+    <div id="habits-work-panel">
+      <div class="section-title">Work Habits</div>
+      <div class="section-sub">Tick daily — never deleted</div>
+      <div class="goals-actions" id="habits-actions-work">
+        <button class="act-btn" id="habit-reorder-btn-work" onclick="toggleHabitReorder('work')">
+          <i class="ti ti-arrows-sort"></i> Reorder
+        </button>
+      </div>
+      <div id="habits-list-work"></div>
+      <button class="add-goal-btn" id="add-habit-btn-work" onclick="addHabit('work')">
+        <i class="ti ti-plus"></i> Add work habit
+      </button>
+    </div>
+    <!-- Life habits -->
+    <div id="habits-life-panel" style="display:none">
+      <div class="section-title">Life Habits</div>
+      <div class="section-sub">Tick daily — never deleted</div>
+      <div class="goals-actions" id="habits-actions-life">
+        <button class="act-btn" id="habit-reorder-btn-life" onclick="toggleHabitReorder('life')">
+          <i class="ti ti-arrows-sort"></i> Reorder
+        </button>
+      </div>
+      <!-- Grow habits -->
+      <div class="habit-section-label grow"><i class="ti ti-trending-up"></i> Habits to Grow</div>
+      <div id="habits-list-life-grow"></div>
+      <button class="add-goal-btn" id="add-habit-btn-life-grow" onclick="addHabit('life-grow')" style="margin-bottom:16px">
+        <i class="ti ti-plus"></i> Add habit to grow
+      </button>
+      <!-- Stop habits -->
+      <div class="habit-section-label stop"><i class="ti ti-trending-down"></i> Habits to Stop</div>
+      <div id="habits-list-life-stop"></div>
+      <button class="add-goal-btn" id="add-habit-btn-life-stop" onclick="addHabit('life-stop')" style="border-color:var(--stop-border);color:var(--stop-text)">
+        <i class="ti ti-plus"></i> Add habit to stop
+      </button>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="section active" id="tab-slots">
+    <div class="sub-tabs">
+      <button class="sub-tab active all" id="st-all" onclick="switchSchedTab('all')">
+        <i class="ti ti-layout-list"></i> All
+      </button>
+      <button class="sub-tab work" id="st-work" onclick="switchSchedTab('work')">
+        <i class="ti ti-briefcase"></i> Work
+      </button>
+      <button class="sub-tab life" id="st-life" onclick="switchSchedTab('life')">
+        <i class="ti ti-home"></i> Life
+      </button>
+    </div>
+    <div id="sched-container"></div>
+  </div>
+
+  <!-- END OF DAY -->
+  <div class="section" id="tab-eod">
+    <div class="eod-card">
+      <div class="eod-title"><i class="ti ti-trash"></i> Reset for New Day</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Clears all schedule slots and resets habit ticks. Goals are kept.</div>
+      <button class="btn-red" id="clear-btn" onclick="clearAll()" style="width:100%;padding:13px;font-size:15px;font-weight:600;cursor:pointer;border-radius:var(--r);display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit">
+        <i class="ti ti-trash"></i> Clear &amp; Reset
+      </button>
+      <div id="save-msg" style="margin-top:10px"></div>
+    </div>
+    <div class="eod-card">
+      <div class="eod-title"><i class="ti ti-brand-google"></i> Save to Google Sheets</div>
+      <div class="gs-label">Apps Script Web App URL (ends in /exec)</div>
+      <input class="gs-input" id="sheet-url" type="url" placeholder="https://script.google.com/.../exec" />
+      <div class="gs-label">Sheet tab name</div>
+      <input class="gs-input" id="sheet-tab" type="text" placeholder="e.g. Daily Log" value="Daily Log" />
+      <button class="btn-green" onclick="saveToSheet()" style="background:var(--blue-text)">
+        <i class="ti ti-cloud-upload"></i> Push to Google Sheets
+      </button>
+    </div>
+  </div>
+
+</div>
+</div><!-- /app-shell -->
+<script>
+/* ─── Slot helpers ─────────────────────────────────────── */
+function pad(n){return String(n).padStart(2,'0');}
+
+/* Build 30-min slots from "HH:MM" to "HH:MM".
+   All slots are 30 min wide EXCEPT the last one which ends exactly at the given end time.
+   e.g. start=05:00 end=05:09 → one slot: 05:00-05:09
+        start=10:00 end=10:29 → one slot: 10:00-10:29
+        start=09:00 end=17:00 → normal 30-min slots throughout */
+function makeSlots(start,end){
+  const out=[];
+  let [h,m]=start.split(':').map(Number);
+  const [eh,em]=end.split(':').map(Number);
+  const endMins=eh*60+em;
+  while(h*60+m < endMins){
+    const nextH=m===30?h+1:h, nextM=m===30?0:30;
+    const nextMins=nextH*60+nextM;
+    /* If next boundary overshoots end, use exact end time for this slot */
+    if(nextMins>=endMins){
+      out.push(`${pad(h)}:${pad(m)}-${pad(eh)}:${pad(em)}`);
+      break;
+    }
+    out.push(`${pad(h)}:${pad(m)}-${pad(nextH)}:${pad(nextM)}`);
+    h=nextH; m=nextM;
+  }
+  return out;
+}
+
+/* Floor: only used for work-reach start so slot key is clean.
+   All other times (wake, work-leave, sleep) are used EXACT.
+   makeSlots loop runs while start < end, so:
+     work leave 5:09 → last work slot starts at 4:30, ends at 5:09
+     sleep 10:29 → last life slot starts at 10:00, ends at 10:29
+     wake 7:05 → first slot is 7:05–7:30 */
+function snapFloor(timeStr){
+  let [h,m]=timeStr.split(':').map(Number);
+  m=m<30?0:30;
+  return `${pad(h)}:${pad(m)}`;
+}
+
+const DEFAULT_TIMES={wake:'06:00',workReach:'10:00',workLeave:'19:00',sleep:'23:00'};
+let dayTimes={...DEFAULT_TIMES};
+let isHoliday=false;
+
+let WORK_SLOTS=[],LIFE_PRE=[],LIFE_POST=[],ALL_SLOTS=[];
+let ANCHORS={};
+
+function computeSlots(){
+  const wS=dayTimes.wake;               /* exact — first slot starts here */
+  const rS=snapFloor(dayTimes.workReach); /* floor so slot boundary aligns */
+  const lS=dayTimes.workLeave;          /* exact — last work slot ends here, next life slot starts here */
+  const sleepS=dayTimes.sleep;          /* exact — last slot ends here */
+
+  if(isHoliday){
+    WORK_SLOTS=[];
+    LIFE_PRE=makeSlots(wS,sleepS);
+    LIFE_POST=[];
+    ALL_SLOTS=[...LIFE_PRE];
+  } else {
+    WORK_SLOTS=makeSlots(rS,lS);
+    LIFE_PRE=makeSlots(wS,rS);
+    LIFE_POST=makeSlots(lS,sleepS);
+    ALL_SLOTS=[...LIFE_PRE,...WORK_SLOTS,...LIFE_POST];
+  }
+
+  ANCHORS={};
+  ANCHORS[wS]='Wake up';
+  if(!isHoliday){ANCHORS[rS]='Work starts';ANCHORS[lS]='Work ends';}
+  ANCHORS[sleepS]='Sleep';
+}
+
+/* ─── State ────────────────────────────────────────────── */
+/* goals: {work:[], life:[]}  each item: {id,text,done} */
+/* habits: {work:[], lifeGrow:[], lifeStop:[]}  each: {id,text,ticked,kind} */
+let goalsWork=[],goalsLife=[];
+let habitsWork=[],habitsLifeGrow=[],habitsLifeStop=[];
+let slots={};
+let goalMode='work',habitMode='work';
+let reorderModeWork=false,reorderModeLife=false;
+let habitReorderModeWork=false,habitReorderModeLife=false;
+let dragSrc=null,habitDragSrc=null;
+let schedView='all';
+
+/* ─── Persist ──────────────────────────────────────────── */
+/* storage: try localStorage, then sessionStorage, then window fallback */
+window._dpStore=window._dpStore||{};
+function lsSet(k,v){
+  try{localStorage.setItem(k,v);}catch(e){}
+  try{sessionStorage.setItem(k,v);}catch(e){}
+  window._dpStore[k]=v;
+}
+function lsGet(k){
+  try{const v=localStorage.getItem(k);if(v!=null)return v;}catch(e){}
+  try{const v=sessionStorage.getItem(k);if(v!=null)return v;}catch(e){}
+  return window._dpStore[k]||null;
+}
+function persist(){
+  /* prune blank habits before saving so they don't accumulate */
+  const hw=habitsWork.filter(h=>h.text.trim());
+  const hg=habitsLifeGrow.filter(h=>h.text.trim());
+  const hs=habitsLifeStop.filter(h=>h.text.trim());
+  lsSet('dp_v6',JSON.stringify({
+    goalsWork,goalsLife,habitsWork:hw,habitsLifeGrow:hg,habitsLifeStop:hs,
+    slots,dayTimes,isHoliday
+  }));
+  syncToFirebase();
+}
+
+/* ─── Firebase sync ────────────────────────────────────── */
+let fbSaveTimer=null;
+
+function syncToFirebase(){
+  if(!fbUserId)return;
+  showSyncStatus('syncing');
+  clearTimeout(fbSaveTimer);
+  fbSaveTimer=setTimeout(()=>{
+    const hw=habitsWork.filter(h=>h.text.trim());
+    const hg=habitsLifeGrow.filter(h=>h.text.trim());
+    const hs=habitsLifeStop.filter(h=>h.text.trim());
+    db.collection('day-planner').doc(fbUserId)
+      .set({
+        goalsWork,goalsLife,
+        habitsWork:hw,habitsLifeGrow:hg,habitsLifeStop:hs,
+        slots,dayTimes,isHoliday,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(()=>showSyncStatus('synced'))
+      .catch(e=>{console.warn('Firebase save failed:',e);showSyncStatus('offline');});
+  },1500);
+}
+
+function listenFirebase(){
+  if(!fbUserId)return;
+  if(fbUnsubscribe)fbUnsubscribe();
+  fbUnsubscribe=db.collection('day-planner').doc(fbUserId)
+    .onSnapshot(snap=>{
+      if(!snap.exists)return;
+      const d=snap.data();
+      goalsWork=d.goalsWork||goalsWork;
+      goalsLife=d.goalsLife||goalsLife;
+      habitsWork=d.habitsWork||habitsWork;
+      habitsLifeGrow=d.habitsLifeGrow||habitsLifeGrow;
+      habitsLifeStop=d.habitsLifeStop||habitsLifeStop;
+      slots=d.slots||slots;
+      if(d.dayTimes)dayTimes={...DEFAULT_TIMES,...d.dayTimes};
+      if(d.isHoliday!==undefined)isHoliday=d.isHoliday;
+      /* also update localStorage so offline works */
+      lsSet('dp_v6',JSON.stringify({goalsWork,goalsLife,habitsWork,habitsLifeGrow,habitsLifeStop,slots,dayTimes,isHoliday}));
+      renderGoals('work');renderGoals('life');
+      renderHabitsWork();renderHabitsLife();
+      renderSched();
+    },e=>console.warn('Firebase listen failed:',e));
+}
+
+function init(){
+  try{
+    const raw=lsGet('dp_v6')||lsGet('dp_v5')||'{}';
+    const d=JSON.parse(raw);
+    /* v6 */
+    if(d.goalsWork!==undefined){
+      goalsWork=d.goalsWork||[];goalsLife=d.goalsLife||[];
+      habitsWork=d.habitsWork||[];habitsLifeGrow=d.habitsLifeGrow||[];habitsLifeStop=d.habitsLifeStop||[];
+    } else if(d.goals!==undefined){
+      /* migrate from v5: all old goals → work, habits → work */
+      goalsWork=d.goals||[];goalsLife=[];
+      habitsWork=(d.habits||[]).map(h=>({...h,kind:'work'}));
+      habitsLifeGrow=[];habitsLifeStop=[];
+    }
+    slots=d.slots||{};
+    if(d.dayTimes)dayTimes={...DEFAULT_TIMES,...d.dayTimes};
+    if(d.isHoliday!==undefined)isHoliday=d.isHoliday;
+  }catch(e){}
+
+  if(!goalsWork.length)goalsWork.push({id:Date.now(),text:'',done:false});
+  computeSlots();
+
+  const now=new Date();
+  document.getElementById('todayDate').value=
+    `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('sheet-url').value=lsGet('dp_sheet_url')||'';
+  document.getElementById('sheet-tab').value=lsGet('dp_sheet_tab')||'Daily Log';
+
+  renderGoals('work');renderGoals('life');
+  renderHabitsWork();renderHabitsLife();
+  renderSched();
+}
+
+function onDateChange(){}
+function getSelectedDate(){
+  const v=document.getElementById('todayDate').value;
+  if(!v)return new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  const[y,m,d]=v.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+/* ─── Tab switching ────────────────────────────────────── */
+function switchTab(t){
+  ['goals','habits','slots','eod'].forEach((n,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',n===t);
+    document.getElementById('tab-'+n).classList.toggle('active',n===t);
+  });
+  if(t==='slots')renderSched();
+}
+
+/* ─── Goal mode toggle ─────────────────────────────────── */
+function switchGoalMode(mode){
+  goalMode=mode;
+  document.getElementById('gToggleWork').className='int-btn'+(mode==='work'?' active-work':'');
+  document.getElementById('gToggleLife').className='int-btn'+(mode==='life'?' active-life':'');
+  document.getElementById('goals-work-panel').style.display=mode==='work'?'block':'none';
+  document.getElementById('goals-life-panel').style.display=mode==='life'?'block':'none';
+}
+
+/* ─── Habit mode toggle ────────────────────────────────── */
+function switchHabitMode(mode){
+  habitMode=mode;
+  document.getElementById('hToggleWork').className='int-btn'+(mode==='work'?' active-work':'');
+  document.getElementById('hToggleLife').className='int-btn'+(mode==='life'?' active-life':'');
+  document.getElementById('habits-work-panel').style.display=mode==='work'?'block':'none';
+  document.getElementById('habits-life-panel').style.display=mode==='life'?'block':'none';
+}
+
+/* ─── GOALS ────────────────────────────────────────────── */
+function goalsArr(mode){return mode==='work'?goalsWork:goalsLife;}
+function setGoalsArr(mode,arr){if(mode==='work')goalsWork=arr;else goalsLife=arr;}
+function pendingGoals(mode){return goalsArr(mode).filter(g=>!g.done);}
+
+function addGoal(mode){
+  if(goalMode!==mode)switchGoalMode(mode);
+  if(pendingGoals(mode).length>=5){
+    const addBtn=document.getElementById(`add-goal-btn-${mode}`);
+    if(addBtn){addBtn.classList.add('bumped');setTimeout(()=>addBtn.classList.remove('bumped'),300);}
+    return;
+  }
+  goalsArr(mode).push({id:Date.now(),text:'',done:false});
+  persist();renderGoals(mode);
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{
+      const inp=document.querySelectorAll(`#goals-list-${mode} .goal-input`);
+      if(inp.length){const last=inp[inp.length-1];last.scrollIntoView({behavior:'smooth',block:'center'});last.focus();}
+    },120);
+  });
+}
+
+function toggleGoal(mode,i){
+  goalsArr(mode)[i].done=!goalsArr(mode)[i].done;
+  persist();renderGoals(mode);
+}
+
+function updateGoalText(mode,i,v){goalsArr(mode)[i].text=v;}
+
+/* Only completed goals can be deleted */
+function deleteGoal(mode,i){
+  const g=goalsArr(mode)[i];
+  if(!g.done)return;
+  goalsArr(mode).splice(i,1);
+  if(!goalsArr(mode).length)goalsArr(mode).push({id:Date.now(),text:'',done:false});
+  persist();renderGoals(mode);
+}
+
+function toggleReorder(mode){
+  if(mode==='work'){
+    reorderModeWork=!reorderModeWork;
+    const btn=document.getElementById('reorder-btn-work');
+    btn.classList.toggle('active',reorderModeWork);
+    btn.innerHTML=reorderModeWork?'<i class="ti ti-check"></i> Done':'<i class="ti ti-arrows-sort"></i> Reorder';
+  } else {
+    reorderModeLife=!reorderModeLife;
+    const btn=document.getElementById('reorder-btn-life');
+    btn.classList.toggle('active',reorderModeLife);
+    btn.innerHTML=reorderModeLife?'<i class="ti ti-check"></i> Done':'<i class="ti ti-arrows-sort"></i> Reorder';
+  }
+  renderGoals(mode);
+}
+
+function moveGoal(mode,i,dir){
+  const arr=goalsArr(mode);
+  const pending=arr.map((g,idx)=>({g,idx})).filter(({g})=>!g.done);
+  const pos=pending.findIndex(({idx})=>idx===i);
+  const npos=pos+dir;
+  if(npos<0||npos>=pending.length)return;
+  const j=pending[npos].idx;
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+  persist();renderGoals(mode);
+}
+
+function renderGoals(mode){
+  const rm=mode==='work'?reorderModeWork:reorderModeLife;
+  const arr=goalsArr(mode);
+  const listEl=document.getElementById(`goals-list-${mode}`);
+  listEl.className=rm?'reorder-mode':'';
+  const pending=arr.map((g,i)=>({g,i})).filter(({g})=>!g.done);
+  const done=arr.map((g,i)=>({g,i})).filter(({g})=>g.done);
+
+  function gHTML({g,i},posP,totP){
+    /* delete button only shown for done items */
+    const delBtn=g.done
+      ?`<button class="goal-del" onclick="deleteGoal('${mode}',${i})" title="Delete">&#215;</button>`
+      :`<span style="width:28px;flex-shrink:0"></span>`;
+    return`<div class="goal-item" id="gi-${mode}-${i}" draggable="${rm&&!g.done}"
+      ondragstart="onGDragStart(event,'${mode}',${i})" ondragover="onGDragOver(event,'${mode}',${i})"
+      ondragend="onGDragEnd('${mode}')" ondrop="onGDrop(event,'${mode}',${i})">
+      <i class="ti ti-grip-vertical drag-handle"></i>
+      <div class="move-btns">
+        <button class="move-btn" onclick="moveGoal('${mode}',${i},-1)" ${posP===0?'disabled':''}><i class="ti ti-chevron-up"></i></button>
+        <button class="move-btn" onclick="moveGoal('${mode}',${i},1)" ${posP===totP-1?'disabled':''}><i class="ti ti-chevron-down"></i></button>
+      </div>
+      <div class="goal-cb ${g.done?'checked':''}" onclick="toggleGoal('${mode}',${i})"></div>
+      <input class="goal-input ${g.done?'done':''}" value="${esc(g.text)}" placeholder="Goal..."
+        oninput="updateGoalText('${mode}',${i},this.value)" onblur="persist()" ${g.done?'readonly':''}/>
+      ${delBtn}
+    </div>`;
+  }
+
+  listEl.innerHTML=pending.map(({g,i},pos)=>gHTML({g,i},pos,pending.length)).join('');
+
+  const doneSection=document.getElementById(`done-section-${mode}`);
+  const doneList=document.getElementById(`done-list-${mode}`);
+  if(done.length){
+    doneSection.style.display='block';
+    doneList.innerHTML=done.map(({g,i})=>gHTML({g,i},0,1)).join('');
+  } else {
+    doneSection.style.display='none';
+    doneList.innerHTML='';
+  }
+
+  const addBtn=document.getElementById(`add-goal-btn-${mode}`);
+  addBtn.style.display=(pending.length>=5||rm)?'none':'flex';
+
+  const actBar=document.getElementById(`goals-actions-${mode}`);
+  actBar.classList.toggle('visible',pending.filter(g=>g.text.trim()).length>1);
+}
+
+/* Goal drag & drop */
+function onGDragStart(e,mode,i){dragSrc={mode,i};e.dataTransfer.effectAllowed='move';setTimeout(()=>{const el=document.getElementById(`gi-${mode}-${i}`);if(el)el.style.opacity='0.4';},0);}
+function onGDragOver(e,mode,i){e.preventDefault();document.querySelectorAll(`#goals-list-${mode} .goal-item`).forEach((el,idx)=>el.classList.toggle('drag-over',idx===i&&!(dragSrc&&dragSrc.i===i)));}
+function onGDragEnd(mode){document.querySelectorAll(`#goals-list-${mode} .goal-item`).forEach(el=>{el.classList.remove('drag-over');el.style.opacity='1';});}
+function onGDrop(e,mode,i){
+  e.preventDefault();
+  if(!dragSrc||dragSrc.mode!==mode||dragSrc.i===i)return;
+  const arr=goalsArr(mode);
+  const m=arr.splice(dragSrc.i,1)[0];arr.splice(i,0,m);
+  dragSrc=null;persist();renderGoals(mode);
+}
+
+/* ─── HABITS (Work) ────────────────────────────────────── */
+function addHabit(kind){
+  const item={id:Date.now(),text:'',ticked:false,kind};
+  if(kind==='work') habitsWork.push(item);
+  else if(kind==='life-grow') habitsLifeGrow.push(item);
+  else habitsLifeStop.push(item);
+  persist();
+  if(kind==='work')renderHabitsWork();
+  else renderHabitsLife();
+  setTimeout(()=>{
+    const sel=kind==='work'?'#habits-list-work':kind==='life-grow'?'#habits-list-life-grow':'#habits-list-life-stop';
+    const inp=document.querySelectorAll(sel+' .goal-input');
+    if(inp.length)inp[inp.length-1].focus();
+  },50);
+}
+
+function toggleHabit(kind,i){
+  const arr=habitArr(kind);
+  arr[i].ticked=!arr[i].ticked;
+  persist();
+  if(kind==='work')renderHabitsWork();else renderHabitsLife();
+}
+
+function updateHabitText(kind,i,v){habitArr(kind)[i].text=v;}
+
+function habitArr(kind){
+  if(kind==='work')return habitsWork;
+  if(kind==='life-grow')return habitsLifeGrow;
+  return habitsLifeStop;
+}
+
+function toggleHabitReorder(mode){
+  if(mode==='work'){
+    habitReorderModeWork=!habitReorderModeWork;
+    const btn=document.getElementById('habit-reorder-btn-work');
+    btn.classList.toggle('active',habitReorderModeWork);
+    btn.innerHTML=habitReorderModeWork?'<i class="ti ti-check"></i> Done':'<i class="ti ti-arrows-sort"></i> Reorder';
+    renderHabitsWork();
+  } else {
+    habitReorderModeLife=!habitReorderModeLife;
+    const btn=document.getElementById('habit-reorder-btn-life');
+    btn.classList.toggle('active',habitReorderModeLife);
+    btn.innerHTML=habitReorderModeLife?'<i class="ti ti-check"></i> Done':'<i class="ti ti-arrows-sort"></i> Reorder';
+    renderHabitsLife();
+  }
+}
+
+function habitHTML(kind,h,i,pos,total,rm){
+  const cbClass=kind==='life-stop'?'stop-cb':'grow-cb';
+  return`<div class="goal-item" id="hi-${kind}-${i}">
+    <div class="habit-cb ${cbClass} ${h.ticked?'checked':''}" onclick="toggleHabit('${kind}',${i})"></div>
+    <input class="goal-input habit-input ${h.ticked?'ticked':''}" value="${esc(h.text)}"
+      placeholder="${kind==='life-stop'?'Habit to stop...':kind==='life-grow'?'Habit to grow...':'Work habit...'}"
+      oninput="updateHabitText('${kind}',${i},this.value)" onblur="persist()" />
+  </div>`;
+}
+
+function renderHabitsWork(){
+  const list=document.getElementById('habits-list-work');
+  /* show all including newly added blank — so user can type into it */
+  list.innerHTML=habitsWork.map((h,i)=>habitHTML('work',h,i,i,habitsWork.length,habitReorderModeWork)).join('');
+  document.getElementById('add-habit-btn-work').style.display=habitReorderModeWork?'none':'flex';
+  document.getElementById('habits-actions-work').classList.toggle('visible',habitsWork.filter(h=>h.text.trim()).length>1);
+}
+
+function renderHabitsLife(){
+  document.getElementById('habits-list-life-grow').innerHTML=
+    habitsLifeGrow.map((h,i)=>habitHTML('life-grow',h,i,i,habitsLifeGrow.length,habitReorderModeLife)).join('');
+  document.getElementById('habits-list-life-stop').innerHTML=
+    habitsLifeStop.map((h,i)=>habitHTML('life-stop',h,i,i,habitsLifeStop.length,habitReorderModeLife)).join('');
+  document.getElementById('add-habit-btn-life-grow').style.display=habitReorderModeLife?'none':'flex';
+  document.getElementById('add-habit-btn-life-stop').style.display=habitReorderModeLife?'none':'flex';
+  document.getElementById('habits-actions-life').classList.toggle('visible',(habitsLifeGrow.filter(h=>h.text.trim()).length+habitsLifeStop.filter(h=>h.text.trim()).length)>1);
+}
+
+/* ─── SCHEDULE ─────────────────────────────────────────── */
+function applyTimes(){
+  dayTimes.wake=document.getElementById('ti-wake').value;
+  dayTimes.workReach=document.getElementById('ti-reach').value;
+  dayTimes.workLeave=document.getElementById('ti-leave').value;
+  dayTimes.sleep=document.getElementById('ti-sleep').value;
+  computeSlots();persist();renderSched();
+}
+
+function toggleHoliday(){
+  isHoliday=!isHoliday;
+  computeSlots();persist();renderSched();
+}
+
+function autoGrow(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}
+
+function schedRow(t){
+  const s=slots[t]||{plan:'',done:''};
+  const[start,end]=t.split('-');
+  const hasContent=(s.plan||'').trim();
+  const rowClass=s.completed?'completed':(hasContent?'has-content':'');
+  const anchor=ANCHORS[start];
+  const anchorBadge=anchor?`<span class="abadge">${anchor}</span>`:'';
+  return`<div class="sched-row ${rowClass}${anchor?' anchor':''}" id="sr-${t.replace(/[:]/g,'')}">
+    <div class="sched-time">${start}<span>${end}</span>${anchorBadge}</div>
+    <div class="sched-cell"><textarea class="sched-ta" rows="1"
+      oninput="updateSlot('${t}','plan',this.value);autoGrow(this)" onblur="persist()">${esc(s.plan)}</textarea></div>
+    <div class="sched-cell"><textarea class="sched-ta" rows="1"
+      oninput="updateSlot('${t}','done',this.value);autoGrow(this)" onblur="persist()">${esc(s.done)}</textarea></div>
+    <button class="sched-check" onclick="toggleSlotDone('${t}')">
+      <span class="circ"><i class="ti ti-check"></i></span>
+    </button>
+  </div>`;
+}
+
+function schedTable(slotList,labelClass,icon,label){
+  if(!slotList.length)return'';
+  return`<div class="period-label ${labelClass}"><i class="ti ${icon}"></i>${label}</div>
+    <div class="summary-card">
+      <div class="sched-row header-row">
+        <div class="sched-hcell">Time</div>
+        <div class="sched-hcell">Plan</div>
+        <div class="sched-hcell">Done</div>
+        <div class="sched-hcell"></div>
+      </div>
+      ${slotList.map(schedRow).join('')}
+    </div>`;
+}
+
+function timeSettingsCard(){
+  return`<div class="time-settings-card">
+    <div class="time-settings-title"><i class="ti ti-clock-edit"></i> Day times</div>
+    <div class="time-grid">
+      <div class="time-field"><label>Wake up</label>
+        <input type="time" id="ti-wake" value="${dayTimes.wake}"></div>
+      <div class="time-field"><label>Work reach</label>
+        <input type="time" id="ti-reach" value="${dayTimes.workReach}"></div>
+      <div class="time-field"><label>Work leave</label>
+        <input type="time" id="ti-leave" value="${dayTimes.workLeave}"></div>
+      <div class="time-field"><label>Sleep</label>
+        <input type="time" id="ti-sleep" value="${dayTimes.sleep}"></div>
+    </div>
+    <button class="apply-times-btn" onclick="applyTimes()">
+      <i class="ti ti-refresh"></i> Apply &amp; rebuild schedule
+    </button>
+  </div>`;
+}
+
+function holidayBar(){
+  return`<div class="holiday-bar">
+    <span><i class="ti ti-beach" style="margin-right:5px"></i>Holiday / Day off</span>
+    <div class="holiday-toggle" onclick="toggleHoliday()">
+      <div class="toggle-track ${isHoliday?'on':''}"><div class="toggle-thumb"></div></div>
+    </div>
+  </div>`;
+}
+
+/* Work schedule: Morning (before 14:00) + Evening (14:00 onwards) */
+function splitWorkSlots(){
+  const morning=WORK_SLOTS.filter(t=>{const h=parseInt(t.split(':')[0]);return h<14;});
+  const evening=WORK_SLOTS.filter(t=>{const h=parseInt(t.split(':')[0]);return h>=14;});
+  return{morning,evening};
+}
+
+/* Holiday: split full day into 4 sections */
+function splitHolidaySlots(){
+  const all=LIFE_PRE; // on holiday, LIFE_PRE holds entire day wake→sleep
+  const morning=all.filter(t=>{const h=parseInt(t.split(':')[0]);return h<12;});
+  const afternoon=all.filter(t=>{const h=parseInt(t.split(':')[0]);return h>=12&&h<15;});
+  const evening=all.filter(t=>{const h=parseInt(t.split(':')[0]);return h>=15&&h<19;});
+  const night=all.filter(t=>{const h=parseInt(t.split(':')[0]);return h>=19;});
+  return{morning,afternoon,evening,night};
+}
+
+function renderSched(){
+  const el=document.getElementById('sched-container');
+  if(!el)return;
+  let html='';
+
+  if(schedView==='all'){
+    html+=timeSettingsCard();
+    html+=holidayBar();
+    if(isHoliday){
+      const{morning,afternoon,evening,night}=splitHolidaySlots();
+      if(morning.length)   html+=schedTable(morning,  'pre-work',    'ti-sunrise',      'Morning');
+      if(afternoon.length) html+=schedTable(afternoon,'morning-work', 'ti-sun-high',     'Afternoon');
+      if(evening.length)   html+=schedTable(evening,  'evening-work', 'ti-sunset',       'Evening');
+      if(night.length)     html+=schedTable(night,    'post-work',    'ti-moon',         'Night');
+    } else {
+      if(LIFE_PRE.length) html+=schedTable(LIFE_PRE,'pre-work','ti-sunrise','Before Work');
+      const{morning,evening}=splitWorkSlots();
+      if(morning.length) html+=schedTable(morning,'morning-work','ti-sun-high','Work — Morning');
+      if(evening.length) html+=schedTable(evening,'evening-work','ti-moon','Work — Evening');
+      if(LIFE_POST.length) html+=schedTable(LIFE_POST,'post-work','ti-home','After Work');
+    }
+  } else if(schedView==='work'){
+    html+=holidayBar();
+    if(isHoliday){
+      html+=`<div style="text-align:center;padding:32px 16px;color:var(--text2);font-size:14px"><i class="ti ti-beach" style="font-size:32px;display:block;margin-bottom:8px;color:var(--teal-text)"></i>It's a holiday — no work schedule today.</div>`;
+    } else {
+      const{morning,evening}=splitWorkSlots();
+      if(morning.length) html+=schedTable(morning,'morning-work','ti-sun-high',`Morning Work — until 2:00 PM`);
+      if(evening.length) html+=schedTable(evening,'evening-work','ti-moon',`Evening Work — 2:00 PM onwards`);
+    }
+  } else if(schedView==='life'){
+    html+=timeSettingsCard();
+    html+=holidayBar();
+    if(isHoliday){
+      const{morning,afternoon,evening,night}=splitHolidaySlots();
+      if(morning.length)   html+=schedTable(morning,  'pre-work',    'ti-sunrise',  'Morning');
+      if(afternoon.length) html+=schedTable(afternoon,'morning-work','ti-sun-high', 'Afternoon');
+      if(evening.length)   html+=schedTable(evening,  'evening-work','ti-sunset',   'Evening');
+      if(night.length)     html+=schedTable(night,    'post-work',   'ti-moon',     'Night');
+    } else {
+      if(LIFE_PRE.length) html+=schedTable(LIFE_PRE,'pre-work','ti-sunrise','Morning — Before Work');
+      if(LIFE_POST.length) html+=schedTable(LIFE_POST,'post-work','ti-home','Evening — After Work');
+    }
+  }
+
+  el.innerHTML=html;
+  el.querySelectorAll('.sched-ta').forEach(autoGrow);
+}
+
+function updateSlot(t,k,v){
+  if(!slots[t])slots[t]={plan:'',done:''};
+  slots[t][k]=v;
+  const row=document.getElementById('sr-'+t.replace(/[:]/g,''));
+  if(row&&!row.classList.contains('completed')){
+    row.classList.toggle('has-content',!!(slots[t].plan||'').trim());
+  }
+}
+function toggleSlotDone(t){
+  if(!slots[t])slots[t]={plan:'',done:''};
+  slots[t].completed=!slots[t].completed;
+  /* auto-copy plan into done when ticking, clear it when unticking */
+  if(slots[t].completed){
+    if(!(slots[t].done||'').trim()&&(slots[t].plan||'').trim()){
+      slots[t].done=slots[t].plan;
+    }
+  } else {
+    /* if done still equals plan (untouched copy), clear it on untick */
+    if((slots[t].done||'').trim()===(slots[t].plan||'').trim()){
+      slots[t].done='';
+    }
+  }
+  persist();renderSched();
+}
+function slotStatus(s){
+  const plan=(s.plan||'').trim(),done=(s.done||'').trim();
+  if(s.completed&&plan&&(!done||done===plan))return'Done as planned';
+  if(s.completed&&!plan&&done)return'Unplanned \u2014 done';
+  if(s.completed)return'Done';
+  if(plan&&done)return'Did something different';
+  if(!plan&&done)return'Unplanned \u2014 done';
+  if(plan&&!done)return'Planned \u2014 not done';
+  return'';
+}
+
+/* ─── Schedule sub-tab switch ──────────────────────────── */
+function switchSchedTab(which){
+  schedView=which;
+  ['all','work','life'].forEach(s=>{
+    document.getElementById('st-'+s).className='sub-tab '+s+(s===which?' active':'');
+  });
+  renderSched();
+}
+
+/* ─── EOD / Save ───────────────────────────────────────── */
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function getSheetId(u){if(!u)return null;const m=u.match(/\/d\/([a-zA-Z0-9-_]+)/);if(m)return m[1];if(/^[a-zA-Z0-9-_]{20,}$/.test(u.trim()))return u.trim();return null;}
+function showMsg(html,type){const el=document.getElementById('save-msg');el.innerHTML=`<div class="msg ${type}">${html}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},7000);}
+
+async function saveToSheet(){
+  const urlVal=document.getElementById('sheet-url').value.trim();
+  const tabName=document.getElementById('sheet-tab').value.trim()||'Daily Log';
+  lsSet('dp_sheet_url',urlVal);
+  lsSet('dp_sheet_tab',tabName);
+  const date=getSelectedDate();
+  const rows=[['Date','Type','Category','Text','Status','Notes']];
+  [...goalsWork.filter(g=>g.text.trim()).map(g=>[date,'Goal','Work',g.text,g.done?'Done':'Pending','']),
+   ...goalsLife.filter(g=>g.text.trim()).map(g=>[date,'Goal','Life',g.text,g.done?'Done':'Pending','']),
+   ...habitsWork.filter(h=>h.text.trim()).map(h=>[date,'Habit','Work',h.text,h.ticked?'Done':'Pending','']),
+   ...habitsLifeGrow.filter(h=>h.text.trim()).map(h=>[date,'Habit','Life-Grow',h.text,h.ticked?'Done':'Pending','']),
+   ...habitsLifeStop.filter(h=>h.text.trim()).map(h=>[date,'Habit','Life-Stop',h.text,h.ticked?'Avoided':'Did it','']),
+   ...ALL_SLOTS.map(t=>{const s=slots[t]||{};const doneVal=(s.done||'').trim();const planVal=(s.plan||'').trim();const sheetDone=s.completed?doneVal||planVal:doneVal&&doneVal!==planVal?doneVal:'';return[date,'Slot','',t,slotStatus(s),sheetDone];})
+  ].forEach(r=>rows.push(r));
+
+  if(urlVal.includes('script.google.com')){
+    try{
+      showMsg('Saving...','success');
+      const resp=await fetch(urlVal,{method:'POST',body:JSON.stringify({sheetId:getSheetId(urlVal)||'',tabName,rows}),headers:{'Content-Type':'text/plain;charset=utf-8'}});
+      const txt=await resp.text();
+      showMsg(txt.includes('success')||resp.ok?'&#10003; Saved!':'Check your sheet.',resp.ok?'success':'error');
+    }catch(e){showMsg('Could not connect.','error');}
+    return;
+  }
+  showMsg('Paste your Apps Script Web App URL (ends in /exec).','error');
+}
+
+function downloadHtml(){
+  const date=getSelectedDate();
+  function row(label,val,color){
+    return `<tr><td style="padding:6px 10px;font-size:13px;color:#666;width:160px">${label}</td><td style="padding:6px 10px;font-size:13px;font-weight:500;color:${color||'#1a1a18'}">${val||'—'}</td></tr>`;
+  }
+  function section(title,color,rows){
+    return `<div style="margin-bottom:24px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:${color};margin-bottom:8px">${title}</div><table style="width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:0.5px solid #e0e0da">${rows}</table></div>`;
+  }
+  let gWork='',gLife='',hWork='',hGrow='',hStop='',sched='';
+  goalsWork.filter(g=>g.text.trim()).forEach(g=>{gWork+=row(g.done?'✓ Done':'Pending',g.text,g.done?'#0F6E56':'#1a1a18');});
+  goalsLife.filter(g=>g.text.trim()).forEach(g=>{gLife+=row(g.done?'✓ Done':'Pending',g.text,g.done?'#0F6E56':'#1a1a18');});
+  habitsWork.filter(h=>h.text.trim()).forEach(h=>{hWork+=row(h.ticked?'✓ Done':'Pending',h.text,h.ticked?'#0F6E56':'#1a1a18');});
+  habitsLifeGrow.filter(h=>h.text.trim()).forEach(h=>{hGrow+=row(h.ticked?'✓ Done':'Pending',h.text,h.ticked?'#0F6E56':'#1a1a18');});
+  habitsLifeStop.filter(h=>h.text.trim()).forEach(h=>{hStop+=row(h.ticked?'✓ Avoided':'Did it',h.text,h.ticked?'#0F6E56':'#C0392B');});
+  ALL_SLOTS.forEach(t=>{
+    const s=slots[t]||{};
+    const status=slotStatus(s);
+    if(!status&&!(s.plan||'').trim()&&!(s.done||'').trim())return;
+    sched+=`<tr style="border-bottom:0.5px solid #f0f0ec"><td style="padding:6px 10px;font-size:12px;font-weight:600;color:#666;white-space:nowrap">${t}</td><td style="padding:6px 10px;font-size:13px;color:#1a1a18">${esc(s.plan)||''}</td><td style="padding:6px 10px;font-size:13px;color:#1a1a18">${esc(s.done)||''}</td><td style="padding:6px 10px;font-size:11px;color:${s.completed?'#0F6E56':'#854F0B'};white-space:nowrap">${status}</td></tr>`;
+  });
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Day Plan — ${date}</title></head><body style="margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f0f0ec;color:#1a1a18">
+<div style="max-width:680px;margin:0 auto">
+<div style="font-size:22px;font-weight:700;margin-bottom:4px">Day Plan</div>
+<div style="font-size:14px;color:#888;margin-bottom:28px">${date}</div>
+${gWork?section('Work Goals','#854F0B',gWork):''}
+${gLife?section('Life Goals','#0D7A5F',gLife):''}
+${hWork?section('Work Habits','#854F0B',hWork):''}
+${hGrow?section('Life Habits — Grow','#0F6E56',hGrow):''}
+${hStop?section('Life Habits — Stop','#C0392B',hStop):''}
+${sched?`<div style="margin-bottom:24px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#3D5A7A;margin-bottom:8px">Schedule</div><table style="width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:0.5px solid #e0e0da"><tr style="background:#f7f7f5"><th style="padding:6px 10px;font-size:11px;text-align:left;color:#999">Time</th><th style="padding:6px 10px;font-size:11px;text-align:left;color:#999">Plan</th><th style="padding:6px 10px;font-size:11px;text-align:left;color:#999">Done</th><th style="padding:6px 10px;font-size:11px;text-align:left;color:#999">Status</th></tr>${sched}</table></div>`:''}
+</div></body></html>`;
+  const encoded='data:text/html;charset=utf-8,'+encodeURIComponent(html);
+  const a=document.createElement('a');
+  a.href=encoded;
+  a.download='day-plan-'+date+'.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function clearAll(){
+  /* clear slots */
+  try{slots={};}catch(e){}
+  /* reset habit ticks */
+  try{habitsWork=habitsWork.map(h=>({...h,ticked:false}));}catch(e){}
+  try{habitsLifeGrow=habitsLifeGrow.map(h=>({...h,ticked:false}));}catch(e){}
+  try{habitsLifeStop=habitsLifeStop.map(h=>({...h,ticked:false}));}catch(e){}
+  /* clear completed goals (remove done items, keep pending) */
+  try{goalsWork=goalsWork.filter(g=>!g.done);if(!goalsWork.length)goalsWork.push({id:Date.now(),text:'',done:false});}catch(e){}
+  try{goalsLife=goalsLife.filter(g=>!g.done);if(!goalsLife.length)goalsLife.push({id:Date.now()+1,text:'',done:false});}catch(e){}
+  /* reset day times to default */
+  try{dayTimes={...DEFAULT_TIMES};computeSlots();}catch(e){}
+  /* reset time inputs in UI */
+  try{document.getElementById('ti-wake').value=dayTimes.wake;}catch(e){}
+  try{document.getElementById('ti-reach').value=dayTimes.workReach;}catch(e){}
+  try{document.getElementById('ti-leave').value=dayTimes.workLeave;}catch(e){}
+  try{document.getElementById('ti-sleep').value=dayTimes.sleep;}catch(e){}
+  /* persist & re-render */
+  try{lsSet('dp_v6',JSON.stringify({goalsWork,goalsLife,habitsWork,habitsLifeGrow,habitsLifeStop,slots,dayTimes,isHoliday}));}catch(e){}
+  try{renderGoals('work');}catch(e){}
+  try{renderGoals('life');}catch(e){}
+  try{renderHabitsWork();}catch(e){}
+  try{renderHabitsLife();}catch(e){}
+  try{renderSched();}catch(e){}
+  const msg=document.getElementById('save-msg');
+  if(msg){msg.innerHTML='<div class="msg success">&#10003; Cleared.</div>';setTimeout(()=>{if(msg)msg.innerHTML='';},3000);}
+}
+
+init();
+document.getElementById("clear-btn").addEventListener("click", clearAll);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
