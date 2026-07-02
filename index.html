@@ -52,7 +52,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Displ
 #app{display:none;flex-direction:column;width:100%;max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg3)}
 
 /* ── Header ── */
-.hdr{background:var(--bg);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;padding:14px 16px 0}
+#app>.hdr{background:var(--bg);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;padding:14px 16px 0}
 .hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;min-width:0}
 .hdr-title{font-size:17px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;letter-spacing:-0.3px;min-width:0;flex:1}
 .hdr-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -351,7 +351,7 @@ input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg
 </div>
 
 <script>
-const BUILD='v2.3 — 2 Jul 2026';
+const BUILD='v2.4 — 2 Jul 2026';
 console.info('[Time Management] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
