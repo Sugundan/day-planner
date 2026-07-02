@@ -45,11 +45,11 @@
   --plan-bg:#1c1500;--plan-border:#D97706;
 }}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:16px;-webkit-font-smoothing:antialiased;max-width:100vw;overflow-x:hidden}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:clip}
 
 /* ── Layout ── */
 #login-screen{display:flex;position:fixed;inset:0;background:var(--bg3);z-index:999;flex-direction:column;align-items:center;justify-content:center;padding:24px}
-#app{display:none;flex-direction:column;width:100%;max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg3);overflow-x:clip}
+#app{display:none;flex-direction:column;width:100%;max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg3)}
 
 /* ── Header ── */
 .hdr{background:var(--bg);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;padding:14px 16px 0}
@@ -351,7 +351,7 @@ input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg
 </div>
 
 <script>
-const BUILD='v2.2 — 2 Jul 2026';
+const BUILD='v2.3 — 2 Jul 2026';
 console.info('[Time Management] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
