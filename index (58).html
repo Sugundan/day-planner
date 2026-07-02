@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Time Management">
+<meta name="theme-color" content="#1D6FA8">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Time Management</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeede9;
+  --text:#18181a;--text2:#636366;--text3:#aeaeb2;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --accent:#2563EB;--accent-bg:#EFF6FF;--accent-dim:#1E50C8;--accent-txt:#1D4ED8;
+  --amber:#D97706;--amber-bg:#FFFBEB;--amber-light:#FEF3C7;
+  --purple:#7C3AED;--purple-bg:#F5F3FF;--purple-light:#EDE9FE;
+  --teal:#0D9488;--teal-bg:#F0FDFA;--teal-light:#CCFBF1;
+  --slate:#475569;--slate-bg:#F8FAFC;--slate-light:#E2E8F0;
+  --green:#16A34A;--green-bg:#F0FDF4;
+  --red:#DC2626;--red-bg:#FEF2F2;--red-border:#FECACA;
+  --plan-bg:#FFFBEB;--plan-border:#F59E0B;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 6px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.05);
+  --r:12px;--rlg:16px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#111113;--bg2:#1c1c1f;--bg3:#232326;
+  --text:#f2f2f7;--text2:#8e8e93;--text3:#48484a;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --accent:#3B82F6;--accent-bg:#1e3a5f;--accent-dim:#2563EB;--accent-txt:#60A5FA;
+  --amber:#F59E0B;--amber-bg:#1c1500;--amber-light:#2d1f00;
+  --purple:#A78BFA;--purple-bg:#1a1030;--purple-light:#2a1a50;
+  --teal:#2DD4BF;--teal-bg:#001a18;--teal-light:#002e2a;
+  --slate:#94A3B8;--slate-bg:#0f172a;--slate-light:#1e2d3d;
+  --green:#4ADE80;--green-bg:#052e16;
+  --red:#F87171;--red-bg:#2d0000;--red-border:#7f1d1d;
+  --plan-bg:#1c1500;--plan-border:#D97706;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;background:var(--bg3);color:var(--text);font-size:16px;-webkit-font-smoothing:antialiased;max-width:100vw;overflow-x:hidden}
+
+/* ── Layout ── */
+#login-screen{display:flex;position:fixed;inset:0;background:var(--bg3);z-index:999;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#app{display:none;flex-direction:column;width:100%;max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg3);overflow-x:clip}
+
+/* ── Header ── */
+.hdr{background:var(--bg);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;padding:14px 16px 0}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;min-width:0}
+.hdr-title{font-size:17px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;letter-spacing:-0.3px;min-width:0;flex:1}
+.hdr-title svg{flex-shrink:0}
+.hdr-title .sync-dot{flex-shrink:0}
+.hdr-right{display:flex;align-items:center;gap:7px;flex-shrink:0;min-width:0}
+.hdr-email{font-size:11px;color:var(--text3);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-sm{background:none;border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500}
+.btn-sm:active{background:var(--bg2)}
+input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg2);border:0.5px solid var(--border2);border-radius:8px;padding:4px 8px;font-family:inherit;outline:none;cursor:pointer;font-weight:500;max-width:122px;min-width:0}
+@media(max-width:420px){
+  .hdr-email{display:none}
+  .hdr-title{font-size:15px}
+  .hdr-title svg{width:22px;height:22px}
+  input[type=date].date-pick{font-size:11px;padding:4px 5px;max-width:108px}
+}
+
+/* ── Nav ── */
+.nav{display:flex;gap:0}
+.nav-tab{flex:1;padding:10px 2px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;letter-spacing:0.1px;transition:color 0.12s,border-color 0.12s}
+.nav-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-tab i{display:block;font-size:16px;margin-bottom:2px}
+
+/* ── Sections ── */
+.section{display:none;padding:16px;padding-bottom:88px}
+.section.on{display:block}
+
+/* ── Cards ── */
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;letter-spacing:-0.1px}
+.card-title i{color:var(--accent);font-size:16px}
+
+/* ── Login ── */
+.login-box{width:100%;max-width:340px}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo h1{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-0.5px;margin-top:14px}
+.login-logo p{font-size:13px;color:var(--text2);margin-top:5px}
+.login-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);padding:22px;box-shadow:var(--shadow-md)}
+.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:6px}
+.field-input{width:100%;border:1px solid var(--border2);border-radius:10px;padding:11px 13px;font-size:15px;color:var(--text);background:var(--bg2);font-family:inherit;outline:none;margin-bottom:12px;transition:border-color 0.15s}
+.field-input:focus{border-color:var(--accent);background:var(--bg)}
+.login-err{font-size:12px;color:var(--red);min-height:16px;margin-bottom:10px}
+.btn-primary{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:7px;letter-spacing:-0.1px;transition:background 0.12s}
+.btn-primary:active{background:var(--accent-dim)}
+.btn-secondary{width:100%;padding:13px;background:transparent;color:var(--accent-txt);border:1px solid var(--accent);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-danger{width:100%;padding:13px;background:transparent;color:var(--red);border:1px solid var(--red-border);border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-danger:active{background:var(--red-bg)}
+
+/* ── Sub-tabs ── */
+.sub-tabs{display:flex;gap:8px;margin-bottom:16px}
+.sub-tab{flex:1;padding:9px 0;font-size:13px;font-weight:600;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.12s}
+.sub-tab.on-work{background:var(--amber-light);color:var(--amber);border-color:var(--amber)}
+.sub-tab.on-life{background:var(--teal-light);color:var(--teal);border-color:var(--teal)}
+.sub-tab.on-all{background:var(--accent-bg);color:var(--accent-txt);border-color:var(--accent)}
+
+/* ── Toggle bar ── */
+.tog-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:11px 14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.tog-bar span{font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:7px}
+.tog-bar span i{color:var(--accent);font-size:15px}
+.tog-wrap{display:flex;align-items:center;cursor:pointer}
+.tog-track{width:42px;height:24px;border-radius:12px;background:var(--border2);position:relative;transition:background 0.2s;flex-shrink:0}
+.tog-track.on{background:var(--accent)}
+.tog-thumb{width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.25)}
+.tog-track.on .tog-thumb{left:20px}
+
+/* ── Period labels ── */
+.period-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;padding:5px 11px;border-radius:8px;margin:12px 0 7px;display:inline-flex;align-items:center;gap:6px}
+.period-lbl:first-child{margin-top:0}
+.period-lbl.pre{background:var(--teal-light);color:var(--teal)}
+.period-lbl.morn{background:var(--amber-light);color:var(--amber)}
+.period-lbl.eve{background:var(--purple-light);color:var(--purple)}
+.period-lbl.post{background:var(--slate-light);color:var(--slate)}
+
+/* ── Schedule table ── */
+.scard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);overflow:visible;margin-bottom:12px;box-shadow:var(--shadow)}
+.scard .srow:first-child{border-radius:var(--rlg) var(--rlg) 0 0}
+.scard .srow:last-child{border-radius:0 0 var(--rlg) var(--rlg);border-bottom:none}
+.srow{display:grid;grid-template-columns:56px minmax(0,1fr) 36px;border-bottom:0.5px solid var(--border);align-items:stretch}
+.srow.with-done{grid-template-columns:56px minmax(0,1fr) minmax(0,1fr) 36px}
+.srow.ideal-row{grid-template-columns:56px minmax(0,1fr)}
+.srow.hdr{background:var(--bg2)}
+.srow.done-row{background:var(--accent-bg)}
+.srow.planned{background:var(--plan-bg);border-left:3px solid var(--plan-border)}
+.srow.planned .stime{font-weight:700;color:var(--text)}
+.shcell{padding:7px 9px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);border-right:0.5px solid var(--border)}
+.shcell:last-child{border-right:none}
+.stime{padding:6px 4px 6px 9px;font-size:11px;font-weight:600;color:var(--text2);border-right:0.5px solid var(--border);display:flex;flex-direction:column;justify-content:center;line-height:1.3;min-width:0;overflow:hidden}
+.stime small{font-weight:400;color:var(--text3);font-size:10px}
+.stime .badge{font-size:9px;font-weight:700;color:var(--accent-txt);background:var(--accent-bg);border-radius:4px;padding:1px 4px;margin-top:2px;letter-spacing:0.1px}
+.scell{border-right:0.5px solid var(--border);display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+.scell.last{border-right:none}
+.scell>div{min-width:0}
+.sta{width:100%;min-width:0;border:none;background:transparent;font-size:13px;color:var(--text);font-family:inherit;resize:none;outline:none;padding:8px 9px;line-height:1.5;min-height:34px;overflow:hidden;overflow-wrap:break-word}
+.sta:focus{background:var(--bg2)}
+.scheck{border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.scheck .circ{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;transition:all 0.15s}
+.srow.done-row .circ{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Type tags ── */
+.type-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;padding:5px 8px 4px;position:relative}
+.type-btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text3);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;flex-shrink:0;transition:all 0.12s}
+.type-btn:active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.type-pop{display:none;position:absolute;top:24px;left:0;z-index:300;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow-md);padding:4px;min-width:130px}
+.type-pop.open{display:block}
+.type-pop-opt{display:block;width:100%;text-align:left;padding:6px 10px;font-size:12px;font-weight:600;border:none;background:transparent;cursor:pointer;border-radius:8px;font-family:inherit;color:var(--text)}
+.type-pop-opt:hover,.type-pop-opt:active{background:var(--bg2)}
+.ttag{font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px;border:0.5px solid transparent;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.type-row{min-width:0;max-width:100%}
+
+/* ── Time card ── */
+.time-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.time-card-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.time-card-title i{color:var(--accent)}
+.time-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.time-field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);display:block;margin-bottom:5px}
+.time-field input[type=time]{width:100%;border:1px solid var(--border2);border-radius:9px;padding:8px 10px;font-size:14px;color:var(--text);background:var(--bg2);font-family:inherit;outline:none;transition:border-color 0.15s}
+.time-field input[type=time]:focus{border-color:var(--accent)}
+.apply-btn{margin-top:12px;width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.12s}
+.apply-btn:active{background:var(--accent-dim)}
+
+/* ── Stats ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat{background:var(--bg2);border-radius:var(--r);padding:12px 14px}
+.stat.full{grid-column:1/-1}
+.stat.w{border-left:3px solid var(--amber)}
+.stat.l{border-left:3px solid var(--teal)}
+.stat.d{border-left:3px solid var(--accent)}
+.stat-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)}
+.stat-val{font-size:26px;font-weight:800;color:var(--text);line-height:1.1;margin-top:3px;letter-spacing:-0.5px}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:3px}
+.prog{height:6px;border-radius:3px;background:var(--border2);overflow:hidden;margin-top:10px}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width 0.4s}
+
+/* ── Calendar ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-nav button{background:var(--bg2);border:0.5px solid var(--border2);border-radius:9px;padding:5px 11px;font-size:14px;cursor:pointer;color:var(--text2);font-family:inherit;transition:background 0.1s}
+.cal-nav button:active{background:var(--border2)}
+.cal-month{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-0.2px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dow{font-size:10px;font-weight:700;text-align:center;color:var(--text3);padding:4px 0;text-transform:uppercase;letter-spacing:0.4px}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);gap:3px;transition:background 0.1s}
+.cal-day:active{background:var(--bg2)}
+.cal-day.today{background:var(--accent-bg);color:var(--accent-txt);font-weight:700}
+.cal-day.sel{background:var(--accent);color:#fff;font-weight:700}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--amber)}
+.cal-day.sel .cal-dot{background:rgba(255,255,255,0.75)}
+.cal-day.empty{cursor:default;pointer-events:none}
+
+/* ── Insights ── */
+.ins-toggle{display:flex;background:var(--bg2);border-radius:var(--r);padding:3px;gap:3px;margin-bottom:14px}
+.ins-btn{flex:1;padding:8px;font-size:13px;font-weight:600;border:none;border-radius:10px;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all 0.15s;letter-spacing:-0.1px}
+.ins-btn.on{background:var(--bg);color:var(--text);box-shadow:var(--shadow)}
+.day-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.day-row:last-child{border-bottom:none}
+.day-lbl{font-size:12px;font-weight:600;color:var(--text2);min-width:52px}
+.day-bar{flex:1;height:8px;border-radius:4px;background:var(--bg2);overflow:hidden}
+.day-fill{height:100%;border-radius:4px;background:var(--accent)}
+.day-pct{font-size:12px;font-weight:700;color:var(--text);min-width:36px;text-align:right}
+.ins-metric{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.ins-metric:last-child{border-bottom:none}
+.ins-metric-lbl{font-size:13px;font-weight:500;color:var(--text2);display:flex;align-items:center;gap:8px}
+.ins-metric-lbl .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ins-metric-val{font-size:15px;font-weight:700;color:var(--text)}
+.streak-badge{display:inline-flex;align-items:center;gap:5px;background:var(--amber-light);color:var(--amber);font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:0.1px}
+
+/* ── Misc ── */
+.msg{font-size:13px;padding:10px 14px;border-radius:9px;margin-top:10px;text-align:center;font-weight:500}
+.msg.ok{background:var(--green-bg);color:var(--green)}
+.msg.err{background:var(--red-bg);color:var(--red)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block;transition:background 0.3s;flex-shrink:0}
+.info-bar{background:var(--accent-bg);border:0.5px solid var(--accent);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--accent-txt);margin-bottom:14px;line-height:1.5;font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="64" height="64" rx="16" fill="#2563EB"/>
+        <circle cx="32" cy="32" r="19" stroke="white" stroke-width="2.5" fill="none"/>
+        <line x1="32" y1="32" x2="32" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="32" y1="32" x2="40" y2="39" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <h1>Time Management</h1>
+      <p>Sign in to sync across devices</p>
+    </div>
+    <div id="login-quote" style="text-align:center;font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:22px;padding:0 8px;font-style:italic"></div>
+    <div class="login-card">
+      <div class="field-label">Email</div>
+      <input class="field-input" id="login-email" type="email" placeholder="you@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()"/>
+      <div class="field-label">Password</div>
+      <input class="field-input" id="login-pass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"/>
+      <div class="login-err" id="login-err"></div>
+      <button class="btn-primary" id="sign-in-btn" onclick="doSignIn()">Sign In</button>
+      <button class="btn-secondary" id="register-btn" onclick="doRegister()">Create account</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="hdr-title">
+        <svg width="26" height="26" viewBox="0 0 64 64" fill="none">
+          <rect width="64" height="64" rx="15" fill="#2563EB"/>
+          <circle cx="32" cy="32" r="19" stroke="white" stroke-width="2.5" fill="none"/>
+          <line x1="32" y1="32" x2="32" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="32" y1="32" x2="40" y2="39" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        Time Management
+        <span class="sync-dot" id="sync-dot"></span>
+      </div>
+      <div class="hdr-right">
+        <span class="hdr-email" id="user-lbl"></span>
+        <button class="btn-sm" onclick="doSignOut()">Out</button>
+        <input type="date" class="date-pick" id="date-pick" onchange="onDateChange()"/>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="nav-tab" id="ntab-ideal" onclick="showTab('ideal')"><i class="ti ti-star"></i> Ideal</button>
+      <button class="nav-tab on" id="ntab-slots" onclick="showTab('slots')"><i class="ti ti-calendar-clock"></i> Schedule</button>
+      <button class="nav-tab" id="ntab-eod" onclick="showTab('eod')"><i class="ti ti-check"></i> End of Day</button>
+      <button class="nav-tab" id="ntab-insights" onclick="showTab('insights')"><i class="ti ti-chart-line"></i> Insights</button>
+    </div>
+  </div>
+
+  <!-- IDEAL DAY -->
+  <div class="section" id="sec-ideal">
+    <div class="info-bar"><i class="ti ti-info-circle"></i> Set your perfect day template once — reused as a guide every day.</div>
+    <div id="ideal-container"></div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="section on" id="sec-slots">
+    <div class="sub-tabs">
+      <button class="sub-tab on-all" id="st-all" onclick="setSchedView('all')"><i class="ti ti-layout-list"></i> All</button>
+      <button class="sub-tab" id="st-work" onclick="setSchedView('work')"><i class="ti ti-briefcase"></i> Work</button>
+      <button class="sub-tab" id="st-life" onclick="setSchedView('life')"><i class="ti ti-home"></i> Life</button>
+    </div>
+    <div id="sched-container"></div>
+  </div>
+
+  <!-- END OF DAY -->
+  <div class="section" id="sec-eod">
+    <div class="card" style="padding:11px 14px">
+      <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--accent-txt);font-weight:500">
+        <span class="sync-dot" style="background:var(--accent)"></span>
+        Changes save automatically
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar"></i> Today's Summary</div>
+      <div id="eod-summary"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-tags"></i> Work Time Breakdown</div>
+      <div id="eod-types"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-table-export"></i> Export to Google Sheets</div>
+      <div class="field-label">Apps Script URL</div>
+      <input class="field-input" id="sheet-url" type="url" placeholder="https://script.google.com/.../exec"/>
+      <div class="field-label">Sheet tab name</div>
+      <input class="field-input" id="sheet-tab" type="text" value="Daily Log"/>
+      <button class="btn-primary" onclick="exportSheets()" style="margin-top:4px"><i class="ti ti-cloud-upload"></i> Export</button>
+      <div id="sheet-msg"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-trash"></i> Reset Day</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Clears all slots for the selected date.</p>
+      <button class="btn-danger" onclick="clearDay()"><i class="ti ti-trash"></i> Clear &amp; Reset</button>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="section" id="sec-insights">
+    <div class="ins-toggle">
+      <button class="ins-btn on" id="ins-week" onclick="setInsView('week')">This Week</button>
+      <button class="ins-btn" id="ins-month" onclick="setInsView('month')">This Month</button>
+    </div>
+    <div class="card">
+      <div class="cal-nav">
+        <button onclick="calShift(-1)"><i class="ti ti-chevron-left"></i></button>
+        <span class="cal-month" id="cal-lbl"></span>
+        <button onclick="calShift(1)"><i class="ti ti-chevron-right"></i></button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <div id="insights-content"></div>
+  </div>
+</div>
+
+<script>
+// ── Firebase setup ────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyAmlk6DkkpRqCW9pEz_XTUeppVqa2P6XEs",
+  authDomain:"my-apps-38e2a.firebaseapp.com",
+  projectId:"my-apps-38e2a",
+  storageBucket:"my-apps-38e2a.firebasestorage.app",
+  messagingSenderId:"1031816461796",
+  appId:"1:1031816461796:web:52e89fd6685fba6fe61bf1"
+});
+const db = firebase.firestore();
+const auth = firebase.auth();
+let uid = null, fbUnsub = null, fbSaveT = null, fbIdealT = null;
+
+// ── State ─────────────────────────────────────────────────
+const DEF = {wake:'06:00',workReach:'10:00',workLeave:'19:00',sleep:'23:00'};
+let dayTimes = {...DEF};
+let idealTimes = {...DEF};
+let isHoliday = false;
+let showDone = ls('tm_showdone')==='1';
+let slots = {};       // {slotKey:{plan,done,types,completed}}
+let idealSlots = {};  // {slotKey:{plan}}
+let schedView = 'all';
+let insView = 'week';
+let calY = new Date().getFullYear();
+let calM = new Date().getMonth();
+let calDots = new Set();
+
+let WORK=[], LPRE=[], LPOST=[], ALL=[], ANCH={};
+let idealWORK=[], idealLPRE=[], idealLPOST=[], idealALL=[], idealANCH={};
+
+// ── Daily quote ───────────────────────────────────────────
+const QUOTES=[
+  ["Time is the scarcest resource, and unless it is managed, nothing else can be managed.","Peter Drucker"],
+  ["It's not enough to be busy... The question is: what are we busy about?","Henry David Thoreau"],
+  ["The key is not to prioritize what's on your schedule, but to schedule your priorities.","Stephen Covey"],
+  ["Until we can manage time, we can manage nothing else.","Peter Drucker"],
+  ["Time = life. Therefore, waste your time and waste your life, or master your time and master your life.","Alan Lakein"],
+  ["You will never find time for anything. If you want time, you must make it.","Charles Buxton"],
+  ["The bad news is time flies. The good news is you're the pilot.","Michael Altshuler"],
+  ["Ordinary people think merely of spending time. Great people think of using it.","Arthur Schopenhauer"],
+  ["Focus on being productive instead of busy.","Tim Ferriss"],
+  ["A man who dares to waste one hour of time has not discovered the value of life.","Charles Darwin"],
+  ["Lost time is never found again.","Benjamin Franklin"],
+  ["The two most powerful warriors are patience and time.","Leo Tolstoy"],
+  ["Don't watch the clock; do what it does. Keep going.","Sam Levenson"],
+  ["Time isn't the main thing. It's the only thing.","Miles Davis"],
+  ["Better three hours too soon than a minute too late.","William Shakespeare"],
+  ["Amateurs sit and wait for inspiration; the rest of us just get up and go to work.","Stephen King"],
+  ["What is important is seldom urgent, and what is urgent is seldom important.","Dwight D. Eisenhower"],
+  ["Efficiency is doing things right; effectiveness is doing the right things.","Peter Drucker"],
+  ["How we spend our days is, of course, how we spend our lives.","Annie Dillard"],
+  ["Small daily improvements are the key to staggering long-term results.","James Clear"],
+  ["The trouble is, you think you have time.","Buddha"],
+  ["Either you run the day, or the day runs you.","Jim Rohn"],
+  ["Slow down and enjoy life. It's not only the scenery you miss by going too fast — you also miss the sense of where you are going and why.","Eddie Cantor"],
+  ["Time you enjoy wasting is not wasted time.","Marthe Troly-Curtin"],
+  ["If you spend too much time thinking about a thing, you'll never get it done.","Bruce Lee"],
+  ["Plans are of little importance, but planning is essential.","Winston Churchill"],
+  ["Simplicity boils down to two steps: identify the essential, eliminate the rest.","Leo Babauta"],
+  ["You may delay, but time will not.","Benjamin Franklin"],
+  ["Action is the foundational key to all success.","Pablo Picasso"],
+  ["Never leave that till tomorrow which you can do today.","Benjamin Franklin"],
+  ["The shorter way to do many things is to do only one thing at a time.","Mozart"],
+  ["Time management is really a misnomer — the challenge is not to manage time, but to manage ourselves.","Stephen Covey"],
+];
+function renderLoginQuote(){
+  const el=document.getElementById('login-quote');if(!el)return;
+  const now=new Date();
+  const start=new Date(now.getFullYear(),0,0);
+  const dayOfYear=Math.floor((now-start)/86400000);
+  const [q,a]=QUOTES[dayOfYear%QUOTES.length];
+  el.innerHTML=`&ldquo;${esc(q)}&rdquo;<div style="margin-top:5px;font-weight:600;font-style:normal;color:var(--text3);font-size:12px">— ${esc(a)}</div>`;
+}
+
+// ── Helpers ───────────────────────────────────────────────
+const pad = n => String(n).padStart(2,'0');
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function fmt12(t){
+  const [h,m]=t.split(':').map(Number);
+  return `${h===0?12:h>12?h-12:h}:${pad(m)} ${h<12?'AM':'PM'}`;
+}
+
+function makeSlots(a,b){
+  const out=[];
+  let [h,m]=a.split(':').map(Number);
+  const [eh,em]=b.split(':').map(Number);
+  const sM=h*60+m; let eM=eh*60+em;
+  if(eM===sM)return out;
+  if(eM<sM)eM+=1440;
+  let cur=sM;
+  while(cur<eM){
+    const nx=cur-cur%30+30;
+    if(nx>=eM){out.push(`${pad(h)}:${pad(m)}-${pad(eh)}:${pad(em)}`);break;}
+    const nh=Math.floor(nx/60)%24,nm=nx%60;
+    out.push(`${pad(h)}:${pad(m)}-${pad(nh)}:${pad(nm)}`);
+    h=nh;m=nm;cur=nx;
+  }
+  return out;
+}
+
+function validTime(v){return typeof v==='string'&&/^\d{1,2}:\d{2}$/.test(v);}
+
+function buildSlots(){
+  ['wake','workReach','workLeave','sleep'].forEach(k=>{if(!validTime(dayTimes[k]))dayTimes[k]=DEF[k];});
+  const {wake,workReach,workLeave,sleep}=dayTimes;
+  if(isHoliday){WORK=[];LPRE=makeSlots(wake,sleep);LPOST=[];ALL=[...LPRE];}
+  else{WORK=makeSlots(workReach,workLeave);LPRE=makeSlots(wake,workReach);LPOST=makeSlots(workLeave,sleep);ALL=[...LPRE,...WORK,...LPOST];}
+  ANCH={};ANCH[wake]='Wake up';
+  if(!isHoliday){ANCH[workReach]='Work starts';ANCH[workLeave]='Work ends';}
+  ANCH[sleep]='Sleep';
+}
+
+function buildIdealSlots(){
+  ['wake','workReach','workLeave','sleep'].forEach(k=>{if(!validTime(idealTimes[k]))idealTimes[k]=DEF[k];});
+  const {wake,workReach,workLeave,sleep}=idealTimes;
+  if(isHoliday){idealWORK=[];idealLPRE=makeSlots(wake,sleep);idealLPOST=[];idealALL=[...idealLPRE];}
+  else{idealWORK=makeSlots(workReach,workLeave);idealLPRE=makeSlots(wake,workReach);idealLPOST=makeSlots(workLeave,sleep);idealALL=[...idealLPRE,...idealWORK,...idealLPOST];}
+  idealANCH={};idealANCH[wake]='Wake up';
+  if(!isHoliday){idealANCH[workReach]='Work starts';idealANCH[workLeave]='Work ends';}
+  idealANCH[sleep]='Sleep';
+}
+
+// ── Storage ───────────────────────────────────────────────
+function ls(k,v){
+  if(v===undefined){try{return localStorage.getItem(k);}catch(e){return null;}}
+  try{localStorage.setItem(k,v);}catch(e){}
+}
+
+function dateKey(){
+  const v=document.getElementById('date-pick');
+  if(v&&v.value)return v.value;
+  const n=new Date();
+  return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+}
+
+function fmtDate(dk){
+  const [y,m,d]=dk.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+// ── Firebase ──────────────────────────────────────────────
+/* All data lives in ONE doc: time-mgmt/{uid}
+   Structure: { idealSlots:{}, days:{'2026-07-02':{slots,dayTimes,isHoliday}, ...} }
+   This avoids subcollections which require separate Firestore security rules. */
+
+function writeDayNow(){
+  if(!uid)return Promise.resolve();
+  showSync('syncing');
+  const dk=dateKey();
+  const FP=firebase.firestore.FieldPath;
+  return db.collection('time-mgmt').doc(uid)
+    .set({days:{[dk]:{slots,dayTimes,isHoliday,date:dk}},updatedAt:firebase.firestore.FieldValue.serverTimestamp()},
+         {mergeFields:[new FP('days',dk),'updatedAt']})
+    .then(()=>showSync('synced'))
+    .catch(err=>{showSync('offline',`${err.code||''} ${err.message||''}`.trim());throw err;});
+}
+
+// Read helper: prefer the proper days map, but also understand legacy docs
+// where days were written as literal top-level "days.YYYY-MM-DD" fields
+// (the old set(...,{merge:true}) call did NOT expand dotted keys into paths).
+function dayFromDoc(data,dk){
+  if(!data)return null;
+  if(data.days&&data.days[dk])return data.days[dk];
+  return data['days.'+dk]||null;
+}
+function mergedDays(data){
+  const out={...((data&&data.days)||{})};
+  if(data)Object.keys(data).forEach(k=>{if(k.startsWith('days.'))out[k.slice(5)]=data[k];});
+  return out;
+}
+
+// One-time repair: fold any legacy "days.YYYY-MM-DD" literal fields into the
+// proper days map, then delete the literal fields.
+function migrateLegacyDays(){
+  if(!uid)return;
+  const ref=db.collection('time-mgmt').doc(uid);
+  ref.get().then(snap=>{
+    if(!snap.exists)return;
+    const data=snap.data();
+    const legacy=Object.keys(data).filter(k=>k.startsWith('days.')&&/^days\.\d{4}-\d{2}-\d{2}$/.test(k));
+    if(!legacy.length)return;
+    const FP=firebase.firestore.FieldPath;
+    const args=[];
+    legacy.forEach(k=>{
+      const dk=k.slice(5);
+      args.push(new FP('days',dk),data[k]);                                   // move into days map
+      args.push(new FP(k),firebase.firestore.FieldValue.delete());            // remove literal "days.X" field
+    });
+    ref.update(...args)
+      .then(()=>console.info(`[migrate] Repaired ${legacy.length} legacy day field(s).`))
+      .catch(e=>console.error('[migrate] Failed:',e.code,e.message));
+  }).catch(()=>{});
+}
+
+function syncDay(){
+  if(!uid)return;
+  showSync('syncing');
+  clearTimeout(fbSaveT);
+  fbSaveT=setTimeout(()=>{fbSaveT=null;writeDayNow().catch(()=>{});},1500);
+}
+
+// Cancels the debounce timer and writes immediately - call this before any
+// read (Insights, Calendar) so we never race the 1.5s debounce.
+function flushSave(){
+  if(!uid)return Promise.resolve();
+  if(fbSaveT){clearTimeout(fbSaveT);fbSaveT=null;return writeDayNow().catch(()=>{});}
+  return Promise.resolve();
+}
+
+function syncIdeal(){
+  if(!uid)return;
+  clearTimeout(fbIdealT);
+  fbIdealT=setTimeout(()=>{
+    db.collection('time-mgmt').doc(uid)
+      .set({idealSlots,idealTimes,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+      .catch(()=>{});
+  },1500);
+}
+
+let pendingRemote=null,pendingRemoteT=null;
+function applyRemote(d){
+  // Never apply remote state over unsaved local edits: wait until the user
+  // stops typing AND the debounced save has flushed, then apply the latest
+  // snapshot we received (newer snapshots replace older pending ones).
+  if(isTyping()||fbSaveT){
+    pendingRemote=d;
+    clearTimeout(pendingRemoteT);
+    pendingRemoteT=setTimeout(()=>{const p=pendingRemote;pendingRemote=null;if(p)applyRemote(p);},2000);
+    return;
+  }
+  if(d.idealSlots){
+    idealSlots=d.idealSlots;
+    ls('tm_ideal',JSON.stringify(idealSlots));
+  }
+  if(d.idealTimes){
+    idealTimes={...DEF,...d.idealTimes};
+    ls('tm_ideal_times',JSON.stringify(idealTimes));
+  }
+  if(d.idealSlots||d.idealTimes){
+    if(document.getElementById('sec-ideal').classList.contains('on'))renderIdeal();
+  }
+  const dk=dateKey();
+  const dayData=dayFromDoc(d,dk);
+  if(dayData){
+    slots=dayData.slots||slots;
+    if(dayData.dayTimes)dayTimes={...DEF,...dayData.dayTimes};
+    if(dayData.isHoliday!==undefined)isHoliday=dayData.isHoliday;
+    ls(`tm_${dk}`,JSON.stringify(slots));
+    renderSched();
+  }
+}
+
+function listenDay(){
+  if(!uid)return;
+  if(fbUnsub){fbUnsub();fbUnsub=null;}
+  fbUnsub=db.collection('time-mgmt').doc(uid)
+    .onSnapshot(snap=>{
+      if(!snap.exists)return;
+      applyRemote(snap.data());
+    },err=>{
+      console.error('[listenDay] Firestore listener error:',err.code,err.message);
+      showSync('offline',`${err.code||''} ${err.message||''}`.trim());
+    });
+}
+
+let lastTypeAt=0;
+function isTyping(){
+  if(document.querySelector('.type-pop.open'))return true;
+  if(Date.now()-lastTypeAt<2000)return true;
+  const el=document.activeElement;
+  if(!el||!el.matches)return false;
+  // textareas AND the Day-times time inputs — a snapshot re-render mid-edit
+  // used to wipe both focus and the half-entered value
+  return el.matches('.sta, .time-card input[type=time]');
+}
+
+// ── Auth ──────────────────────────────────────────────────
+function showSync(s,detail){
+  const dot=document.getElementById('sync-dot');if(!dot)return;
+  dot.style.background=s==='syncing'?'#F59E0B':s==='synced'?'var(--accent)':'var(--red)';
+  dot.title=s==='syncing'?'Syncing…':s==='synced'?'Synced ✓':('Offline'+(detail?` — ${detail}`:''));
+  if(s==='offline')console.error('[sync] Firestore write failed:',detail||'(no detail)');
+}
+
+function doSignIn(){
+  const e=document.getElementById('login-email').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  if(!e||!p){err.textContent='Enter email and password.';return;}
+  const btn=document.getElementById('sign-in-btn');
+  btn.disabled=true;btn.textContent='Signing in…';
+  auth.signInWithEmailAndPassword(e,p).catch(ex=>{
+    btn.disabled=false;btn.textContent='Sign In';
+    const bad=['auth/user-not-found','auth/invalid-credential','auth/wrong-password'].includes(ex.code);
+    err.textContent=bad?'Incorrect email or password.':(ex.code==='auth/too-many-requests'?'Too many attempts.':(ex.message||'Failed.'));
+  });
+}
+
+function doRegister(){
+  const e=document.getElementById('login-email').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  if(!e||!p){err.textContent='Enter email and password.';return;}
+  if(p.length<8){err.textContent='Password must be 8+ characters.';return;}
+  const btn=document.getElementById('register-btn');
+  btn.disabled=true;btn.textContent='Creating…';
+  auth.createUserWithEmailAndPassword(e,p).catch(ex=>{
+    btn.disabled=false;btn.textContent='Create account';
+    err.textContent=ex.code==='auth/email-already-in-use'?'Account exists. Sign in instead.':(ex.message||'Failed.');
+  });
+}
+
+function doSignOut(){
+  auth.signOut().then(()=>{
+    uid=null;
+    if(fbUnsub){fbUnsub();fbUnsub=null;}
+    document.getElementById('app').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+    ls('tm_authed','');
+  });
+}
+
+function resetLoginButtons(){
+  const si=document.getElementById('sign-in-btn');if(si){si.disabled=false;si.textContent='Sign In';}
+  const rb=document.getElementById('register-btn');if(rb){rb.disabled=false;rb.textContent='Create account';}
+}
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    uid=user.uid;
+    ls('tm_authed','1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('app').style.flexDirection='column';
+    const lbl=document.getElementById('user-lbl');if(lbl)lbl.textContent=user.email;
+    showSync('synced');
+    bootApp();
+    migrateLegacyDays();
+    listenDay();
+  } else {
+    ls('tm_authed','');
+    resetLoginButtons();
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('app').style.display='none';
+  }
+});
+
+// ── Boot ──────────────────────────────────────────────────
+function bootApp(){
+  try{const d=JSON.parse(ls('tm_times')||'{}');if(d.dayTimes)dayTimes={...DEF,...d.dayTimes};}catch(e){}
+  try{const d=JSON.parse(ls('tm_ideal')||'{}');if(d&&typeof d==='object')idealSlots=d;}catch(e){}
+  try{const d=JSON.parse(ls('tm_ideal_times')||'{}');if(d&&typeof d==='object'&&d.wake)idealTimes={...DEF,...d};}catch(e){}
+  const now=new Date();
+  const today=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  isHoliday=ls('tm_hol_'+today)==='1';
+  document.getElementById('date-pick').value=today;
+  document.getElementById('sheet-url').value=ls('tm_sheet_url')||'';
+  document.getElementById('sheet-tab').value=ls('tm_sheet_tab')||'Daily Log';
+  try{const d=JSON.parse(ls(`tm_${today}`)||'{}');if(d&&typeof d==='object')slots=d;}catch(e){}
+  buildSlots();
+  renderSched();
+  renderIdeal();
+}
+
+// Show cached app immediately if previously authed, and boot from localStorage
+(function(){
+  try{
+    if(localStorage.getItem('tm_authed')==='1'){
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('app').style.display='flex';
+      document.getElementById('app').style.flexDirection='column';
+      // Boot from localStorage immediately so schedule shows before Firebase resolves
+      bootApp();
+    }
+  }catch(e){}
+})();
+renderLoginQuote();
+
+// ── Tab navigation ────────────────────────────────────────
+function showTab(t){
+  ['ideal','slots','eod','insights'].forEach(n=>{
+    document.getElementById('ntab-'+n).classList.toggle('on',n===t);
+    document.getElementById('sec-'+n).classList.toggle('on',n===t);
+  });
+  if(t==='slots')renderSched();
+  if(t==='ideal')renderIdeal();
+  if(t==='eod')renderEOD();
+  if(t==='insights'){flushSave().then(()=>{renderCal();renderInsights();});}
+}
+
+function onDateChange(){
+  const dk=dateKey();
+  slots={};
+  try{const d=JSON.parse(ls('tm_times')||'{}');if(d.dayTimes)dayTimes={...DEF,...d.dayTimes};}catch(e){}
+  isHoliday=ls('tm_hol_'+dk)==='1';
+  try{const d=JSON.parse(ls(`tm_${dk}`)||'{}');if(d&&typeof d==='object')slots=d;}catch(e){}
+  // Render immediately from local cache — never leave stale data on screen
+  buildSlots();renderSched();renderIdeal();
+  if(document.getElementById('sec-eod').classList.contains('on'))renderEOD();
+  // Then patch from Firestore when it arrives
+  if(uid){
+    db.collection('time-mgmt').doc(uid).get().then(snap=>{
+      if(dateKey()!==dk)return; // user already moved to another date
+      if(!snap.exists)return;
+      const dayData=dayFromDoc(snap.data(),dk);
+      if(!dayData)return;
+      slots=dayData.slots||{};
+      if(dayData.dayTimes)dayTimes={...DEF,...dayData.dayTimes};
+      isHoliday=!!dayData.isHoliday;
+      if(isTyping())return; // don't wipe an edit already in progress
+      buildSlots();renderSched();renderIdeal();
+      if(document.getElementById('sec-eod').classList.contains('on'))renderEOD();
+    }).catch(()=>{});
+  }
+}
+
+// ── Type colours ──────────────────────────────────────────
+const TCOLORS={
+  Work:         {bg:'#FFF3E0',fg:'#854F0B',bd:'#EF9F27'},
+  Meeting:      {bg:'#E8F0FE',fg:'#1A56DB',bd:'#93B4F8'},
+  Call:         {bg:'#F3EDFC',fg:'#6B21A8',bd:'#C084FC'},
+  Transactional:{bg:'#E5EEF9',fg:'#2A5C8A',bd:'#7FB3DE'},
+  Break:        {bg:'#F0FDF4',fg:'#15803D',bd:'#86EFAC'},
+};
+const TTYPES=Object.keys(TCOLORS);
+
+function tstyle(tp){const c=TCOLORS[tp];if(!c)return'';return`background:${c.bg};color:${c.fg};border-color:${c.bd}`;}
+function gtypes(s){if(Array.isArray(s.types))return s.types;if(s.type)return[s.type];return[];}
+function isDone(s){return !!((s&&s.done)||'').trim();}
+
+function addType(t,v){
+  if(!v)return;
+  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
+  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  if(!slots[t].types.includes(v))slots[t].types.push(v);
+  slots[t].type='';lastTypeAt=Date.now();
+  refreshTypes(t);save();
+}
+
+function removeType(t,v){
+  if(!slots[t])return;
+  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  slots[t].types=slots[t].types.filter(x=>x!==v);
+  lastTypeAt=Date.now();refreshTypes(t);save();
+}
+
+function refreshTypes(t){
+  const row=document.getElementById('sr-'+t.replace(/:/g,''));
+  if(!row)return;
+  const s=slots[t]||{};const types=gtypes(s);
+  const tr=row.querySelector('.type-row');if(!tr)return;
+  tr.querySelectorAll('.ttag').forEach(el=>el.remove());
+  tr.querySelectorAll('.type-btn-add').forEach(el=>el.remove());
+  const pop=tr.querySelector('.type-pop');
+  const avail=TTYPES.filter(tp=>!types.includes(tp));
+  if(pop){
+    pop.innerHTML=avail.map(tp=>`<button class="type-pop-opt" onclick="addType('${t}','${tp}');closePop('${t}')">${tp}</button>`).join('');
+    if(!avail.length)pop.classList.remove('open');
+  }
+  types.forEach(tp=>{
+    const sp=document.createElement('span');sp.className='ttag';sp.style.cssText=tstyle(tp);
+    sp.innerHTML=`${tp}<button onclick="removeType('${t}','${tp}')" style="background:none;border:none;cursor:pointer;padding:0;font-size:9px;color:inherit;margin-left:2px;opacity:0.6">×</button>`;
+    tr.appendChild(sp);
+  });
+  if(avail.length){
+    const ab=document.createElement('button');ab.className='type-btn type-btn-add';
+    ab.title='Add type';ab.textContent='+';
+    ab.onclick=function(){togglePop(t,this);};
+    tr.appendChild(ab);
+  }
+}
+
+function closePop(t){
+  const row=document.getElementById('sr-'+t.replace(/:/g,''));
+  if(row){const p=row.querySelector('.type-pop');if(p)p.classList.remove('open');}
+}
+function togglePop(t,btn){
+  const pop=btn.closest('.type-row').querySelector('.type-pop');
+  const was=pop&&pop.classList.contains('open');
+  document.querySelectorAll('.type-pop.open').forEach(p=>p.classList.remove('open'));
+  if(pop&&!was)pop.classList.add('open');
+}
+document.addEventListener('click',e=>{
+  try{if(!e.target.closest('.type-row'))document.querySelectorAll('.type-pop.open').forEach(p=>p.classList.remove('open'));}catch(_){}
+});
+
+// ── Save ──────────────────────────────────────────────────
+function save(){
+  const dk=dateKey();
+  ls('tm_times',JSON.stringify({dayTimes}));
+  ls('tm_hol_'+dk,isHoliday?'1':'');
+  ls(`tm_${dk}`,JSON.stringify(slots));
+  syncDay();
+}
+function saveIdeal(){
+  ls('tm_ideal',JSON.stringify(idealSlots));
+  ls('tm_ideal_times',JSON.stringify(idealTimes));
+  syncIdeal();
+}
+
+// ── Schedule rendering ────────────────────────────────────
+function autoGrow(ta){
+  if(ta._raf)cancelAnimationFrame(ta._raf);
+  ta._raf=requestAnimationFrame(()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';ta._raf=null;});
+}
+
+function slotRow(t,isWork){
+  const s=slots[t]||{plan:'',done:'',types:[]};
+  const [st,en]=t.split('-');
+  const hasPlan=(s.plan||'').trim();
+  const cls=isDone(s)?'srow done-row':(hasPlan?'srow planned':'srow');
+  const anch=ANCH[st]?`<span class="badge">${ANCH[st]}</span>`:'';
+  let typeHtml='';
+  if(isWork&&showDone){
+    const types=gtypes(s);
+    const avail=TTYPES.filter(tp=>!types.includes(tp));
+    const tags=types.map(tp=>`<span class="ttag" style="${tstyle(tp)}">${tp}<button onclick="removeType('${t}','${tp}')" style="background:none;border:none;cursor:pointer;padding:0;font-size:9px;color:inherit;margin-left:2px;opacity:0.6">×</button></span>`).join('');
+    const popOpts=avail.map(tp=>`<button class="type-pop-opt" onclick="addType('${t}','${tp}');closePop('${t}')">${tp}</button>`).join('');
+    const addBtn=avail.length?`<button class="type-btn" title="Add type" onclick="togglePop('${t}',this)">+</button>`:'';
+    typeHtml=`<div class="type-row"><div class="type-pop">${popOpts}</div>${tags}${addBtn}</div>`;
+  }
+  const doneCell=showDone?`<div class="scell${!isWork?' last':''}"><div style="display:flex;flex-direction:column;width:100%">${typeHtml}<textarea class="sta" rows="1" oninput="updSlot('${t}','done',this.value);autoGrow(this)" onblur="save()">${esc(s.done)}</textarea></div></div>`:'';
+  return`<div class="${cls}${showDone?' with-done':''}" id="sr-${t.replace(/:/g,'')}">
+    <div class="stime">${st}<small>${en}</small>${anch}</div>
+    <div class="scell"><textarea class="sta" rows="1" oninput="updSlot('${t}','plan',this.value);autoGrow(this)" onblur="save()">${esc(s.plan)}</textarea></div>
+    ${doneCell}
+    <button class="scheck" onclick="tickSlot('${t}')"><span class="circ"><i class="ti ti-check"></i></span></button>
+  </div>`;
+}
+
+function slotTable(list,lblCls,icon,lbl,isWork){
+  if(!list.length)return'';
+  const doneHdr=showDone?`<div class="shcell">Done</div>`:'';
+  return`<div class="period-lbl ${lblCls}"><i class="ti ${icon}"></i> ${lbl}</div>
+  <div class="scard">
+    <div class="srow${showDone?' with-done':''} hdr">
+      <div class="shcell">Time</div><div class="shcell">Plan</div>${doneHdr}<div class="shcell"></div>
+    </div>
+    ${list.map(t=>slotRow(t,!!isWork)).join('')}
+  </div>`;
+}
+
+function splitWorkArr(work){
+  const sh=t=>parseInt(t.split('-')[0].split(':')[0]);
+  return{morn:work.filter(t=>sh(t)<14),eve:work.filter(t=>sh(t)>=14)};
+}
+function splitWork(){return splitWorkArr(WORK);}
+
+function splitHolidayArr(lpre){
+  const sh=t=>parseInt(t.split('-')[0].split(':')[0]);
+  return{
+    morn:lpre.filter(t=>sh(t)<10),
+    aft:lpre.filter(t=>{const h=sh(t);return h>=10&&h<14;}),
+    eve:lpre.filter(t=>{const h=sh(t);return h>=14&&h<19;}),
+    night:lpre.filter(t=>sh(t)>=19)
+  };
+}
+function splitHoliday(){return splitHolidayArr(LPRE);}
+
+function timeCard(ctx,times){
+  return`<div class="time-card">
+    <div class="time-card-title"><i class="ti ti-clock-edit"></i> Day times</div>
+    <div class="time-grid">
+      <div class="time-field"><label>Wake up</label><input type="time" id="ti-wake-${ctx}" value="${times.wake}"></div>
+      <div class="time-field"><label>Work start</label><input type="time" id="ti-reach-${ctx}" value="${times.workReach}"></div>
+      <div class="time-field"><label>Work end</label><input type="time" id="ti-leave-${ctx}" value="${times.workLeave}"></div>
+      <div class="time-field"><label>Sleep</label><input type="time" id="ti-sleep-${ctx}" value="${times.sleep}"></div>
+    </div>
+    <button class="apply-btn" onclick="applyTimes('${ctx}')"><i class="ti ti-refresh"></i> Apply & rebuild</button>
+  </div>`;
+}
+
+function toggleBar(label,icon,state,fn){
+  return`<div class="tog-bar">
+    <span><i class="ti ${icon}" style="margin-right:5px"></i>${label}</span>
+    <div class="tog-wrap" onclick="${fn}()">
+      <div class="tog-track${state?' on':''}"><div class="tog-thumb"></div></div>
+    </div>
+  </div>`;
+}
+
+function renderSched(){
+  const el=document.getElementById('sched-container');if(!el)return;
+  buildSlots();
+  let h='';
+  if(schedView==='all'){
+    h+=timeCard('sched',dayTimes);
+    h+=toggleBar('Holiday / Day off','ti-beach',isHoliday,'toggleHoliday');
+    h+=toggleBar('Show done column','ti-notes',showDone,'toggleDone');
+    if(isHoliday){
+      const {morn,aft,eve,night}=splitHoliday();
+      const wL=fmt12(dayTimes.wake),sL=fmt12(dayTimes.sleep);
+      if(morn.length)  h+=slotTable(morn, 'pre', 'ti-sunrise',  `Morning — ${wL} to 10:00 AM`);
+      if(aft.length)   h+=slotTable(aft,  'morn','ti-sun-high', 'Afternoon — 10:00 AM to 2:00 PM');
+      if(eve.length)   h+=slotTable(eve,  'eve', 'ti-sunset',   'Evening — 2:00 PM to 7:00 PM');
+      if(night.length) h+=slotTable(night,'post','ti-moon',      `Night — 7:00 PM to ${sL}`);
+    } else {
+      if(LPRE.length)  h+=slotTable(LPRE,'pre', 'ti-sunrise','Before Work');
+      const {morn,eve}=splitWork();
+      if(morn.length)  h+=slotTable(morn,'morn','ti-sun-high','Work — Morning',true);
+      if(eve.length)   h+=slotTable(eve, 'eve', 'ti-moon',    'Work — Evening',true);
+      if(LPOST.length) h+=slotTable(LPOST,'post','ti-home',   'After Work');
+    }
+  } else if(schedView==='work'){
+    if(isHoliday){h+=`<div style="text-align:center;padding:40px 16px;color:var(--text2)"><i class="ti ti-beach" style="font-size:32px;display:block;margin-bottom:8px"></i>Holiday today</div>`;}
+    else{
+      h+=toggleBar('Show done column','ti-notes',showDone,'toggleDone');
+      const {morn,eve}=splitWork();
+      if(morn.length) h+=slotTable(morn,'morn','ti-sun-high','Morning Work',true);
+      if(eve.length)  h+=slotTable(eve, 'eve', 'ti-moon',    'Evening Work',true);
+    }
+  } else {
+    h+=toggleBar('Show done column','ti-notes',showDone,'toggleDone');
+    if(isHoliday){
+      const {morn,aft,eve,night}=splitHoliday();
+      const wL=fmt12(dayTimes.wake),sL=fmt12(dayTimes.sleep);
+      if(morn.length)  h+=slotTable(morn, 'pre', 'ti-sunrise',  `Morning — ${wL} to 10:00 AM`);
+      if(aft.length)   h+=slotTable(aft,  'morn','ti-sun-high', 'Afternoon — 10:00 AM to 2:00 PM');
+      if(eve.length)   h+=slotTable(eve,  'eve', 'ti-sunset',   'Evening — 2:00 PM to 7:00 PM');
+      if(night.length) h+=slotTable(night,'post','ti-moon',      `Night — 7:00 PM to ${sL}`);
+    } else {
+      if(LPRE.length)  h+=slotTable(LPRE, 'pre', 'ti-sunrise','Before Work');
+      if(LPOST.length) h+=slotTable(LPOST,'post','ti-home',   'After Work');
+    }
+  }
+  el.innerHTML=h;
+  el.querySelectorAll('.sta').forEach(autoGrow);
+}
+
+function setSchedView(v){
+  schedView=v;
+  document.getElementById('st-all').className='sub-tab'+(v==='all'?' on-all':'');
+  document.getElementById('st-work').className='sub-tab'+(v==='work'?' on-work':'');
+  document.getElementById('st-life').className='sub-tab'+(v==='life'?' on-life':'');
+  renderSched();
+}
+
+function applyTimes(ctx){
+  const w=document.getElementById(`ti-wake-${ctx}`).value;
+  const r=document.getElementById(`ti-reach-${ctx}`).value;
+  const l=document.getElementById(`ti-leave-${ctx}`).value;
+  const s=document.getElementById(`ti-sleep-${ctx}`).value;
+  // Sanity: wake < work start < work end (sleep may wrap past midnight)
+  const toMin=t=>{const[a,b]=t.split(':').map(Number);return a*60+b;};
+  if(!isHoliday&&validTime(w)&&validTime(r)&&validTime(l)&&!(toMin(w)<toMin(r)&&toMin(r)<toMin(l))){
+    alert('Check your times — expected Wake < Work start < Work end.');
+    return;
+  }
+  if(ctx==='ideal'){
+    if(validTime(w))idealTimes.wake=w;
+    if(validTime(r))idealTimes.workReach=r;
+    if(validTime(l))idealTimes.workLeave=l;
+    if(validTime(s))idealTimes.sleep=s;
+    buildIdealSlots();saveIdeal();renderIdeal();
+  } else {
+    if(validTime(w))dayTimes.wake=w;
+    if(validTime(r))dayTimes.workReach=r;
+    if(validTime(l))dayTimes.workLeave=l;
+    if(validTime(s))dayTimes.sleep=s;
+    buildSlots();save();renderSched();
+  }
+}
+function toggleHoliday(){isHoliday=!isHoliday;buildSlots();save();renderSched();buildIdealSlots();if(document.getElementById('sec-ideal').classList.contains('on'))renderIdeal();}
+function toggleDone(){showDone=!showDone;ls('tm_showdone',showDone?'1':'');renderSched();}
+
+function updSlot(t,k,v){
+  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
+  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  slots[t][k]=v;
+  const row=document.getElementById('sr-'+t.replace(/:/g,''));
+  if(row){
+    row.classList.toggle('done-row',isDone(slots[t]));
+    row.classList.toggle('planned',!isDone(slots[t])&&!!(slots[t].plan||'').trim());
+  }
+  save();
+}
+
+function tickSlot(t){
+  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
+  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  if(isDone(slots[t])){
+    slots[t].done='';
+  } else {
+    slots[t].done=(slots[t].plan||'').trim()||'Done';
+  }
+  const rowEl=document.getElementById('sr-'+t.replace(/:/g,''));
+  if(rowEl){
+    const tmp=document.createElement('div');tmp.innerHTML=slotRow(t,WORK.includes(t));
+    const nr=tmp.firstElementChild;rowEl.replaceWith(nr);
+    nr.querySelectorAll('.sta').forEach(autoGrow);
+  }
+  save();
+}
+
+// ── Ideal Day ─────────────────────────────────────────────
+function idealRow(t){
+  const s=idealSlots[t]||{plan:''};
+  const [st,en]=t.split('-');
+  const anch=idealANCH[st]?`<span class="badge">${idealANCH[st]}</span>`:'';
+  const hasPlan=(s.plan||'').trim();
+  return`<div class="srow ideal-row${hasPlan?' planned':''}" id="ir-${t.replace(/:/g,'')}">
+    <div class="stime">${st}<small>${en}</small>${anch}</div>
+    <div class="scell last"><textarea class="sta" rows="1" placeholder="Ideal activity…"
+      oninput="updIdeal('${t}',this.value);autoGrow(this)" onblur="saveIdeal()">${esc(s.plan)}</textarea></div>
+  </div>`;
+}
+
+function idealTable(list,cls,icon,lbl){
+  if(!list.length)return'';
+  return`<div class="period-lbl ${cls}"><i class="ti ${icon}"></i> ${lbl}</div>
+  <div class="scard">
+    <div class="srow ideal-row hdr"><div class="shcell">Time</div><div class="shcell">Ideal Activity</div></div>
+    ${list.map(idealRow).join('')}
+  </div>`;
+}
+
+function renderIdeal(){
+  const el=document.getElementById('ideal-container');if(!el)return;
+  buildIdealSlots();
+  let h=timeCard('ideal',idealTimes);
+  if(isHoliday){
+    const {morn,aft,eve,night}=splitHolidayArr(idealLPRE);
+    const wL=fmt12(idealTimes.wake),sL=fmt12(idealTimes.sleep);
+    if(morn.length)  h+=idealTable(morn, 'pre', 'ti-sunrise',  `Morning — ${wL} to 10:00 AM`);
+    if(aft.length)   h+=idealTable(aft,  'morn','ti-sun-high', 'Afternoon — 10:00 AM to 2:00 PM');
+    if(eve.length)   h+=idealTable(eve,  'eve', 'ti-sunset',   'Evening — 2:00 PM to 7:00 PM');
+    if(night.length) h+=idealTable(night,'post','ti-moon',      `Night — 7:00 PM to ${sL}`);
+  } else {
+    if(idealLPRE.length)  h+=idealTable(idealLPRE, 'pre', 'ti-sunrise','Before Work');
+    const {morn,eve}=splitWorkArr(idealWORK);
+    if(morn.length)  h+=idealTable(morn,'morn','ti-sun-high','Work — Morning');
+    if(eve.length)   h+=idealTable(eve, 'eve', 'ti-moon',    'Work — Evening');
+    if(idealLPOST.length) h+=idealTable(idealLPOST,'post','ti-home',   'After Work');
+  }
+  el.innerHTML=h;
+  el.querySelectorAll('.sta').forEach(autoGrow);
+}
+
+function updIdeal(t,v){
+  if(!idealSlots[t])idealSlots[t]={plan:''};
+  idealSlots[t].plan=v;
+  const row=document.getElementById('ir-'+t.replace(/:/g,''));
+  if(row)row.classList.toggle('planned',!!v.trim());
+}
+
+// ── EOD ───────────────────────────────────────────────────
+function slotStatus(s){
+  const p=(s.plan||'').trim(),d=(s.done||'').trim();
+  if(p&&d&&d===p)return'Done as planned';
+  if(p&&d&&d!==p)return'Did something different';
+  if(!p&&d)return'Unplanned - done';
+  if(p&&!d)return'Planned - not done';
+  return'';
+}
+
+function renderEOD(){
+  renderEODSummary();
+  renderEODTypes();
+}
+
+function renderEODSummary(){
+  const el=document.getElementById('eod-summary');if(!el)return;
+  buildSlots();
+  const life=[...LPRE,...LPOST];
+  const lifeDone=life.filter(t=>isDone(slots[t]||{})).length;
+  const lifeUsed=life.filter(t=>{const s=slots[t]||{};return(s.plan||'').trim()||(s.done||'').trim();}).length;
+  const workDone=WORK.filter(t=>isDone(slots[t]||{})).length;
+  const workUsed=WORK.filter(t=>{const s=slots[t]||{};return(s.plan||'').trim()||(s.done||'').trim();}).length;
+  const total=ALL.length;
+  const done=ALL.filter(t=>isDone(slots[t]||{})).length;
+  const pct=total?Math.round(done/total*100):0;
+  if(isHoliday){el.innerHTML=`<div class="stat-grid"><div class="stat l full"><div class="stat-lbl">Holiday Slots</div><div class="stat-val">${lifeDone} / ${life.length}</div><div class="stat-sub">${lifeUsed} used</div></div></div>`;return;}
+  el.innerHTML=`<div class="stat-grid">
+    <div class="stat w"><div class="stat-lbl">Work Done</div><div class="stat-val">${workDone}<span style="font-size:14px;font-weight:400;color:var(--text2)"> / ${WORK.length}</span></div><div class="stat-sub">${workUsed} used</div></div>
+    <div class="stat l"><div class="stat-lbl">Life Done</div><div class="stat-val">${lifeDone}<span style="font-size:14px;font-weight:400;color:var(--text2)"> / ${life.length}</span></div><div class="stat-sub">${lifeUsed} used</div></div>
+    <div class="stat d full"><div class="stat-lbl">Overall</div><div class="stat-val">${pct}%<span style="font-size:14px;font-weight:400;color:var(--text2)"> · ${done} of ${total}</span></div><div class="prog"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+  </div>`;
+}
+
+function renderEODTypes(){
+  const el=document.getElementById('eod-types');if(!el)return;
+  if(isHoliday||!WORK.length){el.innerHTML=`<p style="font-size:13px;color:var(--text2)">No work slots today.</p>`;return;}
+  const counts={};TTYPES.forEach(tp=>counts[tp]=0);
+  WORK.forEach(t=>gtypes(slots[t]||{}).forEach(tp=>{if(counts[tp]!==undefined)counts[tp]++;}));
+  const tagged=WORK.filter(t=>gtypes(slots[t]||{}).length>0).length;
+  const rows=TTYPES.map(tp=>{
+    const n=counts[tp];if(!n)return'';
+    const c=TCOLORS[tp];const pct=Math.round(n/WORK.length*100);
+    return`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:12px;font-weight:700;color:${c.fg}">${tp}</span><span style="font-size:12px;color:var(--text2)">${n} · ${pct}%</span></div><div class="prog"><div class="prog-fill" style="width:${Math.max(4,pct)}%;background:${c.bd}"></div></div></div>`;
+  }).join('');
+  el.innerHTML=`<p style="font-size:12px;color:var(--text2);margin-bottom:10px">${tagged} of ${WORK.length} work slots tagged${WORK.length-tagged>0?` · ${WORK.length-tagged} untagged`:''}</p>${rows||'<p style="font-size:13px;color:var(--text2)">No types tagged yet.</p>'}`;
+}
+
+async function exportSheets(){
+  const url=document.getElementById('sheet-url').value.trim();
+  const tab=document.getElementById('sheet-tab').value.trim()||'Daily Log';
+  ls('tm_sheet_url',url);ls('tm_sheet_tab',tab);
+  const msg=document.getElementById('sheet-msg');
+  let ok;try{const p=new URL(url);ok=p.protocol==='https:'&&(p.hostname==='script.google.com'||p.hostname.endsWith('.script.google.com'));}catch(e){ok=false;}
+  if(!ok){msg.innerHTML='<div class="msg err">Paste your Apps Script /exec URL.</div>';return;}
+  const date=fmtDate(dateKey());
+  const cat={};
+  if(isHoliday)ALL.forEach(t=>cat[t]='Holiday');
+  else{LPRE.forEach(t=>cat[t]='Life');WORK.forEach(t=>cat[t]='Work');LPOST.forEach(t=>cat[t]='Life');}
+  const rows=[['Date','Category','Slot','Plan','Done','Status','WorkType']];
+  ALL.forEach(t=>{
+    const s=slots[t]||{};
+    const dv=(s.done||'').trim(),pv=(s.plan||'').trim();
+    rows.push([date,cat[t]||'',t,pv,dv,slotStatus(s),gtypes(s).join(', ')]);
+  });
+  try{
+    msg.innerHTML='<div class="msg ok">Exporting…</div>';
+    const r=await fetch(url,{method:'POST',body:JSON.stringify({tabName:tab,rows}),headers:{'Content-Type':'text/plain;charset=utf-8'}});
+    const txt=await r.text();
+    msg.innerHTML=`<div class="msg ${r.ok?'ok':'err'}">${txt.includes('success')||r.ok?'Exported!':'Check your sheet.'}</div>`;
+  }catch(e){msg.innerHTML='<div class="msg err">Could not connect.</div>';}
+}
+
+function clearDay(){
+  slots={};buildSlots();save();renderSched();
+  if(document.getElementById('sec-eod').classList.contains('on'))renderEOD();
+}
+
+// ── Insights ──────────────────────────────────────────────
+function setInsView(v){
+  insView=v;
+  document.getElementById('ins-week').classList.toggle('on',v==='week');
+  document.getElementById('ins-month').classList.toggle('on',v==='month');
+  renderInsights();
+}
+
+function calShift(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();if(insView==='month')renderInsights();}
+
+async function renderCal(){
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-lbl').textContent=`${MONTHS[calM]} ${calY}`;
+  calDots=new Set();
+  if(uid){
+    try{
+      const snap=await db.collection('time-mgmt').doc(uid).get();
+      if(snap.exists){
+        const allDays=mergedDays(snap.data());
+        const prefix=`${calY}-${pad(calM+1)}-`;
+        Object.entries(allDays).forEach(([dk,dayData])=>{
+          if(dk.startsWith(prefix)&&dayData.slots&&
+            Object.values(dayData.slots).some(s=>(s.plan||'').trim()||(s.done||'').trim()))
+            calDots.add(dk);
+        });
+      }
+    }catch(e){
+      console.error('[calendar] Firestore error:',e.code,e.message);
+      const lbl=document.getElementById('cal-lbl');
+      if(lbl)lbl.title=`Error loading dots: ${e.code||e.message}`;
+    }
+  }
+  buildCalGrid();
+}
+
+function buildCalGrid(){
+  const grid=document.getElementById('cal-grid');if(!grid)return;
+  const now=new Date();
+  const todayKey=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const selKey=dateKey();
+  const dows=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let h=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const first=new Date(calY,calM,1).getDay();
+  const dim=new Date(calY,calM+1,0).getDate();
+  for(let i=0;i<first;i++)h+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=dim;d++){
+    const dk=`${calY}-${pad(calM+1)}-${pad(d)}`;
+    const isSel=dk===selKey,isToday=dk===todayKey,hasDot=calDots.has(dk);
+    const cls=['cal-day',isSel?'sel':isToday?'today':'',hasDot?'has-dot':''].filter(Boolean).join(' ');
+    h+=`<div class="${cls}" onclick="calPick('${dk}')"><span>${d}</span>${hasDot?'<span class="cal-dot"></span>':''}</div>`;
+  }
+  grid.innerHTML=h;
+}
+
+function calPick(dk){
+  document.getElementById('date-pick').value=dk;
+  onDateChange();
+  showTab('slots');
+}
+
+async function renderInsights(){
+  const el=document.getElementById('insights-content');if(!el)return;
+  if(!uid){el.innerHTML=`<div class="card" style="font-size:13px;color:var(--text2);text-align:center;padding:24px">Sign in to view insights.</div>`;return;}
+  el.innerHTML=`<div class="card" style="text-align:center;padding:28px;font-size:13px;color:var(--text2)"><i class="ti ti-loader" style="font-size:22px;display:block;margin-bottom:8px;color:var(--accent)"></i>Loading…</div>`;
+
+  const selDk=dateKey();
+  const [selY,selMo,selD]=selDk.split('-').map(Number);
+  const selDate=new Date(selY,selMo-1,selD);
+  const nowReal=new Date();
+  const todayKey=`${nowReal.getFullYear()}-${pad(nowReal.getMonth()+1)}-${pad(nowReal.getDate())}`;
+
+  let days=[];
+  if(insView==='week'){
+    const dow=selDate.getDay();
+    const mon=new Date(selDate);mon.setDate(selDate.getDate()-(dow===0?6:dow-1));
+    for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`);}
+  } else {
+    const dim=new Date(calY,calM+1,0).getDate();
+    for(let d=1;d<=dim;d++)days.push(`${calY}-${pad(calM+1)}-${pad(d)}`);
+  }
+
+  let docs={};
+  try{
+    const snap=await db.collection('time-mgmt').doc(uid).get();
+    if(snap.exists){
+      const allDays=mergedDays(snap.data());
+      days.forEach(dk=>{if(allDays[dk])docs[dk]=allDays[dk];});
+    }
+  }catch(e){
+    el.innerHTML=`<div class="card" style="font-size:13px;color:var(--red);padding:4px;line-height:1.6">
+      <strong>Could not load data</strong><br>
+      Code: ${e.code||'unknown'}<br>
+      Message: ${e.message}<br>
+      <span style="color:var(--text2);font-size:11px">uid: ${uid||'none'} · project: ${firebase.app().options.projectId||'?'} · path: time-mgmt/${uid}</span>
+    </div>`;
+    return;
+  }
+
+  // Belt-and-suspenders: overlay the day currently open in Schedule/EOD with
+  // live in-memory state, in case the Firestore read still raced the write.
+  const liveDk=dateKey();
+  if(days.includes(liveDk)&&Object.keys(slots).length){
+    docs[liveDk]={slots,dayTimes,isHoliday,date:liveDk};
+  }
+
+  const foundDocs=Object.keys(docs);
+
+  if(foundDocs.length===0){
+    el.innerHTML=`<div class="card">
+      <div class="card-title" style="color:var(--text2)"><i class="ti ti-calendar-off"></i> No data yet</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6">No schedule data found for <strong>${days[0]}</strong> to <strong>${days[days.length-1]}</strong>.<br>Use the Schedule tab to plan and tick off slots — they'll appear here automatically.</p>
+    </div>`;
+    return;
+  }
+
+  let tWork=0,tWorkTotal=0,tLife=0,tLifeTotal=0,tDone=0,tAll=0,streak=0,counting=true;
+  const rowData=days.map(dk=>{
+    const d=docs[dk];if(!d)return null;
+    const s=d.slots||{};const dt={...DEF,...(d.dayTimes||{})};const hol=d.isHoliday||false;
+    let w=[],lp=[],lpo=[];
+    if(!hol){w=makeSlots(dt.workReach,dt.workLeave);lp=makeSlots(dt.wake,dt.workReach);lpo=makeSlots(dt.workLeave,dt.sleep);}
+    else{lp=makeSlots(dt.wake,dt.sleep);}
+    const all=[...lp,...w,...lpo];
+    const wDone=w.filter(t=>isDone(s[t]||{})).length;
+    const lDone=[...lp,...lpo].filter(t=>isDone(s[t]||{})).length;
+    const done=all.filter(t=>isDone(s[t]||{})).length;
+    const pct=all.length?Math.round(done/all.length*100):0;
+    tWork+=wDone;tWorkTotal+=w.length;
+    tLife+=lDone;tLifeTotal+=[...lp,...lpo].length;
+    tDone+=done;tAll+=all.length;
+    const lbl=new Date(dk+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric'});
+    return{dk,lbl,pct,wDone,wTotal:w.length,lDone,lTotal:[...lp,...lpo].length};
+  }).filter(Boolean);
+
+  // Streak — count backwards from actual today (not selected date)
+  const today=todayKey;
+  const allDays=[...days].reverse();
+  for(const dk of allDays){
+    if(dk>today)continue; // future days must not break the streak
+    const d=docs[dk];
+    if(!d){if(dk!==today){counting=false;break;}continue;}
+    const s=d.slots||{};const dt={...DEF,...(d.dayTimes||{})};const hol=d.isHoliday||false;
+    let all=[];
+    if(!hol){all=[...makeSlots(dt.wake,dt.workReach),...makeSlots(dt.workReach,dt.workLeave),...makeSlots(dt.workLeave,dt.sleep)];}
+    else{all=makeSlots(dt.wake,dt.sleep);}
+    const done=all.filter(t=>isDone(s[t]||{})).length;
+    if(done>0&&counting)streak++;
+    else{counting=false;break;}
+  }
+
+  const oPct=tAll?Math.round(tDone/tAll*100):0;
+  const wPct=tWorkTotal?Math.round(tWork/tWorkTotal*100):0;
+  const lPct=tLifeTotal?Math.round(tLife/tLifeTotal*100):0;
+
+  const dayRows=rowData.map(r=>{
+    const wW=r.wTotal?Math.round(r.wDone/r.wTotal*100):0;
+    const lW=r.lTotal?Math.round(r.lDone/r.lTotal*100):0;
+    return`<div class="day-row">
+      <div class="day-lbl">${r.lbl}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+        <div class="day-bar"><div class="day-fill" style="width:${r.pct}%"></div></div>
+        <div style="display:flex;gap:4px">
+          <div style="flex:1;height:3px;border-radius:2px;background:var(--bg2);overflow:hidden"><div style="height:100%;width:${wW}%;border-radius:2px;background:var(--amber)"></div></div>
+          <div style="flex:1;height:3px;border-radius:2px;background:var(--bg2);overflow:hidden"><div style="height:100%;width:${lW}%;border-radius:2px;background:var(--teal)"></div></div>
+        </div>
+      </div>
+      <div class="day-pct">${r.pct}%</div>
+    </div>`;
+  }).join('');
+
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const wkFmt=dk=>new Date(dk+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  const insLabel=insView==='week'
+    ? `Week of ${wkFmt(days[0])} – ${wkFmt(days[6])}`
+    : `${MONTHS[calM]} ${calY}`;
+
+  el.innerHTML=`
+  <div class="card">
+    <div class="card-title"><i class="ti ti-trending-up"></i> ${insLabel}</div>
+    <div class="stat-grid">
+      <div class="stat w"><div class="stat-lbl">Work</div><div class="stat-val">${tWork}<span style="font-size:13px;font-weight:500;color:var(--text2)"> / ${tWorkTotal}</span></div><div class="stat-sub">${wPct}% completion</div></div>
+      <div class="stat l"><div class="stat-lbl">Life</div><div class="stat-val">${tLife}<span style="font-size:13px;font-weight:500;color:var(--text2)"> / ${tLifeTotal}</span></div><div class="stat-sub">${lPct}% completion</div></div>
+      <div class="stat d full"><div class="stat-lbl">Overall completion</div><div class="stat-val">${oPct}%<span style="font-size:14px;font-weight:500;color:var(--text2)"> · ${tDone} of ${tAll} slots</span></div><div class="prog"><div class="prog-fill" style="width:${oPct}%"></div></div></div>
+    </div>
+    ${streak>0?`<div style="margin-bottom:16px"><span class="streak-badge"><i class="ti ti-flame"></i> ${streak}-day streak</span></div>`:''}
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-calendar-stats"></i> Daily breakdown</div>
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:12px;height:3px;border-radius:2px;background:var(--accent);display:inline-block"></span>Overall</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:12px;height:3px;border-radius:2px;background:var(--amber);display:inline-block"></span>Work</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:12px;height:3px;border-radius:2px;background:var(--teal);display:inline-block"></span>Life</div>
+    </div>
+    ${rowData.length?dayRows:`<div style="font-size:13px;color:var(--text2);text-align:center;padding:16px">No data for this period yet.</div>`}
+  </div>`;
+}
+</script>
+</body>
+</html>
