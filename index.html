@@ -55,6 +55,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Displ
 .hdr{background:var(--bg);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;padding:14px 16px 0}
 .hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;min-width:0}
 .hdr-title{font-size:17px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;letter-spacing:-0.3px;min-width:0;flex:1}
+.hdr-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .hdr-title svg{flex-shrink:0}
 .hdr-title .sync-dot{flex-shrink:0}
 .hdr-right{display:flex;align-items:center;gap:7px;flex-shrink:0;min-width:0}
@@ -62,8 +63,10 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Displ
 .btn-sm{background:none;border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500}
 .btn-sm:active{background:var(--bg2)}
 input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg2);border:0.5px solid var(--border2);border-radius:8px;padding:4px 8px;font-family:inherit;outline:none;cursor:pointer;font-weight:500;max-width:122px;min-width:0}
-@media(max-width:420px){
+@media(max-width:519px){
   .hdr-email{display:none}
+}
+@media(max-width:420px){
   .hdr-title{font-size:15px}
   .hdr-title svg{width:22px;height:22px}
   input[type=date].date-pick{font-size:11px;padding:4px 5px;max-width:108px}
@@ -264,7 +267,7 @@ input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg
           <line x1="32" y1="32" x2="32" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
           <line x1="32" y1="32" x2="40" y2="39" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
-        Time Management
+        <span class="hdr-name">Time Management</span>
         <span class="sync-dot" id="sync-dot"></span>
       </div>
       <div class="hdr-right">
@@ -348,6 +351,8 @@ input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg
 </div>
 
 <script>
+const BUILD='v2.2 — 2 Jul 2026';
+console.info('[Time Management] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
   apiKey:"AIzaSyAmlk6DkkpRqCW9pEz_XTUeppVqa2P6XEs",
