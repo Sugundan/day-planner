@@ -234,7 +234,13 @@ input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Uses the same icon file as the home-screen/PWA icon, so the login
+           screen always matches your latest logo automatically. Falls back
+           to the clock SVG if the image can't load. -->
+      <img src="apple-touch-icon.png" alt="Time Management" width="64" height="64"
+           style="border-radius:16px;display:block;margin:0 auto"
+           onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
+      <svg id="logo-fallback" style="display:none;margin:0 auto" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="64" height="64" rx="16" fill="#2563EB"/>
         <circle cx="32" cy="32" r="19" stroke="white" stroke-width="2.5" fill="none"/>
         <line x1="32" y1="32" x2="32" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
@@ -365,6 +371,20 @@ firebase.initializeApp({
 const db = firebase.firestore();
 const auth = firebase.auth();
 let uid = null, fbUnsub = null, fbSaveT = null, fbIdealT = null;
+// ── Sync safety ──
+// hydrated: we have received at least one Firestore snapshot this session.
+//           NO writes to Firestore are allowed before this — prevents a
+//           freshly-opened device with stale/empty localStorage from
+//           clobbering good cloud data.
+// dirty / dirtyIdeal: the user actually edited something THIS session.
+//           Blur events alone must never trigger a cloud write.
+// remoteDays: last-known cloud copy of every day (from snapshots) — used to
+//           refuse writing an EMPTY local day over a NON-EMPTY cloud day.
+// allowEmptyWrite: set only by an explicit, confirmed "Clear day".
+let hydrated=false, dirty=false, dirtyIdeal=false, remoteDays={}, allowEmptyWrite=null;
+function dayHasContent(s){
+  return !!(s&&Object.values(s).some(x=>x&&(((x.plan||'').trim())||((x.done||'').trim())||(Array.isArray(x.types)&&x.types.length)||x.type)));
+}
 
 // ── State ─────────────────────────────────────────────────
 const DEF = {wake:'06:00',workReach:'10:00',workLeave:'19:00',sleep:'23:00'};
@@ -501,13 +521,41 @@ function fmtDate(dk){
 
 function writeDayNow(){
   if(!uid)return Promise.resolve();
-  showSync('syncing');
   const dk=dateKey();
+  // GUARD 1: never write before we've read the cloud at least once this
+  // session. A device that just opened may still hold stale/empty local data.
+  if(!hydrated){
+    console.warn('[sync] Skipped write for',dk,'— not hydrated from Firestore yet.');
+    return Promise.resolve();
+  }
+  // GUARD 2: only write if the user actually edited something this session.
+  // A textarea blur with zero changes must not touch the cloud.
+  if(!dirty){
+    return Promise.resolve();
+  }
+  // GUARD 3: refuse to overwrite a non-empty cloud day with an empty local
+  // day, unless the user explicitly confirmed "Clear day" for this date.
+  const remote=(remoteDays[dk]||{}).slots;
+  if(!dayHasContent(slots)&&dayHasContent(remote)&&allowEmptyWrite!==dk){
+    console.warn('[sync] Blocked empty write over non-empty cloud data for',dk,'— re-pulling cloud copy.');
+    // Keep a local backup of the cloud copy, then restore it on screen.
+    ls('tm_bak_'+dk,JSON.stringify(remote));
+    slots={...remote};
+    ls(`tm_${dk}`,JSON.stringify(slots));
+    buildSlots();renderSched();
+    showSync('synced');
+    return Promise.resolve();
+  }
+  showSync('syncing');
   const FP=firebase.firestore.FieldPath;
   return db.collection('time-mgmt').doc(uid)
     .set({days:{[dk]:{slots,dayTimes,isHoliday,date:dk}},updatedAt:firebase.firestore.FieldValue.serverTimestamp()},
          {mergeFields:[new FP('days',dk),'updatedAt']})
-    .then(()=>showSync('synced'))
+    .then(()=>{
+      remoteDays[dk]={slots:{...slots},dayTimes:{...dayTimes},isHoliday,date:dk};
+      if(allowEmptyWrite===dk)allowEmptyWrite=null;
+      showSync('synced');
+    })
     .catch(err=>{showSync('offline',`${err.code||''} ${err.message||''}`.trim());throw err;});
 }
 
@@ -565,6 +613,7 @@ function flushSave(){
 
 function syncIdeal(){
   if(!uid)return;
+  if(!hydrated||!dirtyIdeal)return; // same protection as day writes
   clearTimeout(fbIdealT);
   fbIdealT=setTimeout(()=>{
     db.collection('time-mgmt').doc(uid)
@@ -598,6 +647,10 @@ function applyRemote(d){
   const dk=dateKey();
   const dayData=dayFromDoc(d,dk);
   if(dayData){
+    // Safety net: before remote replaces a non-empty local day, keep the
+    // outgoing copy in localStorage (tm_bak_<date>) so it's recoverable.
+    if(dayHasContent(slots)&&JSON.stringify(slots)!==JSON.stringify(dayData.slots||{}))
+      ls('tm_bak_'+dk,JSON.stringify(slots));
     slots=dayData.slots||slots;
     if(dayData.dayTimes)dayTimes={...DEF,...dayData.dayTimes};
     if(dayData.isHoliday!==undefined)isHoliday=dayData.isHoliday;
@@ -611,7 +664,9 @@ function listenDay(){
   if(fbUnsub){fbUnsub();fbUnsub=null;}
   fbUnsub=db.collection('time-mgmt').doc(uid)
     .onSnapshot(snap=>{
-      if(!snap.exists)return;
+      hydrated=true; // we've now seen the cloud state — writes may proceed
+      if(!snap.exists){remoteDays={};return;}
+      remoteDays=mergedDays(snap.data());
       applyRemote(snap.data());
     },err=>{
       console.error('[listenDay] Firestore listener error:',err.code,err.message);
@@ -756,6 +811,8 @@ function onDateChange(){
   // Then patch from Firestore when it arrives
   if(uid){
     db.collection('time-mgmt').doc(uid).get().then(snap=>{
+      hydrated=true; // a successful read counts as hydration too
+      if(snap.exists)remoteDays=mergedDays(snap.data());
       if(dateKey()!==dk)return; // user already moved to another date
       if(!snap.exists)return;
       const dayData=dayFromDoc(snap.data(),dk);
@@ -786,6 +843,7 @@ function isDone(s){return !!((s&&s.done)||'').trim();}
 
 function addType(t,v){
   if(!v)return;
+  dirty=true;
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   if(!slots[t].types.includes(v))slots[t].types.push(v);
@@ -795,6 +853,7 @@ function addType(t,v){
 
 function removeType(t,v){
   if(!slots[t])return;
+  dirty=true;
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   slots[t].types=slots[t].types.filter(x=>x!==v);
   lastTypeAt=Date.now();refreshTypes(t);save();
@@ -1003,12 +1062,14 @@ function applyTimes(ctx){
     return;
   }
   if(ctx==='ideal'){
+    dirtyIdeal=true;
     if(validTime(w))idealTimes.wake=w;
     if(validTime(r))idealTimes.workReach=r;
     if(validTime(l))idealTimes.workLeave=l;
     if(validTime(s))idealTimes.sleep=s;
     buildIdealSlots();saveIdeal();renderIdeal();
   } else {
+    dirty=true;
     if(validTime(w))dayTimes.wake=w;
     if(validTime(r))dayTimes.workReach=r;
     if(validTime(l))dayTimes.workLeave=l;
@@ -1016,13 +1077,14 @@ function applyTimes(ctx){
     buildSlots();save();renderSched();
   }
 }
-function toggleHoliday(){isHoliday=!isHoliday;buildSlots();save();renderSched();buildIdealSlots();if(document.getElementById('sec-ideal').classList.contains('on'))renderIdeal();}
+function toggleHoliday(){dirty=true;isHoliday=!isHoliday;buildSlots();save();renderSched();buildIdealSlots();if(document.getElementById('sec-ideal').classList.contains('on'))renderIdeal();}
 function toggleDone(){showDone=!showDone;ls('tm_showdone',showDone?'1':'');renderSched();}
 
 function updSlot(t,k,v){
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   slots[t][k]=v;
+  dirty=true;
   const row=document.getElementById('sr-'+t.replace(/:/g,''));
   if(row){
     row.classList.toggle('done-row',isDone(slots[t]));
@@ -1032,6 +1094,7 @@ function updSlot(t,k,v){
 }
 
 function tickSlot(t){
+  dirty=true;
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   if(isDone(slots[t])){
@@ -1093,6 +1156,7 @@ function renderIdeal(){
 }
 
 function updIdeal(t,v){
+  dirtyIdeal=true;
   if(!idealSlots[t])idealSlots[t]={plan:''};
   idealSlots[t].plan=v;
   const row=document.getElementById('ir-'+t.replace(/:/g,''));
@@ -1173,6 +1237,10 @@ async function exportSheets(){
 }
 
 function clearDay(){
+  if(!confirm('Clear all entries for this day? This removes them from the cloud too.'))return;
+  const dk=dateKey();
+  ls('tm_bak_'+dk,JSON.stringify(slots)); // recoverable backup
+  dirty=true;allowEmptyWrite=dk;
   slots={};buildSlots();save();renderSched();
   if(document.getElementById('sec-eod').classList.contains('on'))renderEOD();
 }
