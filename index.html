@@ -154,6 +154,10 @@ input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg
 .scheck{border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
 .scheck .circ{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;transition:all 0.15s}
 .srow.done-row .circ{background:var(--accent);border-color:var(--accent);color:#fff}
+.sactions{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:3px 0}
+.sskip{border:none;background:transparent;cursor:pointer;padding:1px 6px;color:var(--text3);opacity:0.4;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.srow.skip-row .sskip{opacity:1;color:var(--text2)}
+.srow.skip-row .circ{background:var(--text3);border-color:var(--text3);color:#fff}
 
 /* ── Type tags ── */
 .type-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;padding:5px 8px 4px;position:relative}
@@ -841,7 +845,7 @@ const TTYPES=Object.keys(TCOLORS);
 
 function tstyle(tp){const c=TCOLORS[tp];if(!c)return'';return`background:${c.bg};color:${c.fg};border-color:${c.bd}`;}
 function gtypes(s){if(Array.isArray(s.types))return s.types;if(s.type)return[s.type];return[];}
-function isDone(s){return !!((s&&s.done)||'').trim();}
+function isDone(s){return !!((s&&s.done)||'').trim()||!!(s&&s.skip);}
 
 function addType(t,v){
   if(!v)return;
@@ -925,7 +929,8 @@ function slotRow(t,isWork){
   const s=slots[t]||{plan:'',done:'',types:[]};
   const [st,en]=t.split('-');
   const hasPlan=(s.plan||'').trim();
-  const cls=isDone(s)?'srow done-row':(hasPlan?'srow planned':'srow');
+  const skipped=!!s.skip&&!(s.done||'').trim();
+  const cls=isDone(s)?('srow done-row'+(skipped?' skip-row':'')):(hasPlan?'srow planned':'srow');
   const anch=ANCH[st]?`<span class="badge">${ANCH[st]}</span>`:'';
   let typeHtml='';
   if(isWork&&showDone){
@@ -933,7 +938,7 @@ function slotRow(t,isWork){
     const avail=TTYPES.filter(tp=>!types.includes(tp));
     const tags=types.map(tp=>`<span class="ttag" style="${tstyle(tp)}">${tp}<button onclick="removeType('${t}','${tp}')" style="background:none;border:none;cursor:pointer;padding:0;font-size:9px;color:inherit;margin-left:2px;opacity:0.6">×</button></span>`).join('');
     const popOpts=avail.map(tp=>`<button class="type-pop-opt" onclick="addType('${t}','${tp}');closePop('${t}')">${tp}</button>`).join('');
-    const addBtn=avail.length?`<button class="type-btn" title="Add type" onclick="togglePop('${t}',this)">+</button>`:'';
+    const addBtn=avail.length?`<button class="type-btn type-btn-add" title="Add type" onclick="togglePop('${t}',this)">+</button>`:'';
     typeHtml=`<div class="type-row"><div class="type-pop">${popOpts}</div>${tags}${addBtn}</div>`;
   }
   const doneCell=showDone?`<div class="scell${!isWork?' last':''}"><div style="display:flex;flex-direction:column;width:100%">${typeHtml}<textarea class="sta" rows="1" oninput="updSlot('${t}','done',this.value);autoGrow(this)" onblur="save()">${esc(s.done)}</textarea></div></div>`:'';
@@ -941,7 +946,7 @@ function slotRow(t,isWork){
     <div class="stime">${st}<small>${en}</small>${anch}</div>
     <div class="scell"><textarea class="sta" rows="1" oninput="updSlot('${t}','plan',this.value);autoGrow(this)" onblur="save()">${esc(s.plan)}</textarea></div>
     ${doneCell}
-    <button class="scheck" onclick="tickSlot('${t}')"><span class="circ"><i class="ti ti-check"></i></span></button>
+    <div class="sactions"><button class="scheck" onclick="tickSlot('${t}')"><span class="circ"><i class="ti ${skipped?'ti-minus':'ti-check'}"></i></span></button><button class="sskip" title="Skip — count as done, no details" onclick="skipSlot('${t}')"><i class="ti ti-ban"></i></button></div>
   </div>`;
 }
 
@@ -1100,16 +1105,29 @@ function tickSlot(t){
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   if(isDone(slots[t])){
-    slots[t].done='';
+    slots[t].done='';slots[t].skip=false;
   } else {
     slots[t].done=(slots[t].plan||'').trim()||'Done';
   }
+  redrawRow(t);
+  save();
+}
+
+function redrawRow(t){
   const rowEl=document.getElementById('sr-'+t.replace(/:/g,''));
   if(rowEl){
     const tmp=document.createElement('div');tmp.innerHTML=slotRow(t,WORK.includes(t));
     const nr=tmp.firstElementChild;rowEl.replaceWith(nr);
     nr.querySelectorAll('.sta').forEach(autoGrow);
   }
+}
+
+function skipSlot(t){
+  dirty=true;
+  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
+  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  slots[t].skip=!slots[t].skip;
+  redrawRow(t);
   save();
 }
 
@@ -1168,6 +1186,7 @@ function updIdeal(t,v){
 // ── EOD ───────────────────────────────────────────────────
 function slotStatus(s){
   const p=(s.plan||'').trim(),d=(s.done||'').trim();
+  if(s.skip&&!d)return'Skipped';
   if(p&&d&&d===p)return'Done as planned';
   if(p&&d&&d!==p)return'Did something different';
   if(!p&&d)return'Unplanned - done';
@@ -1185,9 +1204,9 @@ function renderEODSummary(){
   buildSlots();
   const life=[...LPRE,...LPOST];
   const lifeDone=life.filter(t=>isDone(slots[t]||{})).length;
-  const lifeUsed=life.filter(t=>{const s=slots[t]||{};return(s.plan||'').trim()||(s.done||'').trim();}).length;
+  const lifeUsed=life.filter(t=>{const s=slots[t]||{};return(s.plan||'').trim()||(s.done||'').trim()||s.skip;}).length;
   const workDone=WORK.filter(t=>isDone(slots[t]||{})).length;
-  const workUsed=WORK.filter(t=>{const s=slots[t]||{};return(s.plan||'').trim()||(s.done||'').trim();}).length;
+  const workUsed=WORK.filter(t=>{const s=slots[t]||{};return(s.plan||'').trim()||(s.done||'').trim()||s.skip;}).length;
   const total=ALL.length;
   const done=ALL.filter(t=>isDone(slots[t]||{})).length;
   const pct=total?Math.round(done/total*100):0;
