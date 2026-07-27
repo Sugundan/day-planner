@@ -266,7 +266,7 @@ input[type=date].date-pick{font-size:12px;color:var(--text2);background:var(--bg
       </div>
       <div class="hdr-right">
         <span class="hdr-email" id="user-lbl"></span>
-        <button class="btn-sm" onclick="doSignOut()">Out</button>
+        <button class="btn-sm" id="signout-btn" onclick="doSignOut()">Out</button>
         <input type="date" class="date-pick" id="date-pick" onchange="onDateChange()"/>
       </div>
     </div>
@@ -511,6 +511,18 @@ function writeDayNow(){
     .then(()=>{
       remoteDays[dk]={slots:snapSlots,dayTimes:snapTimes,isHoliday:snapHol,date:dk};
       ls('tm_unsynced_'+dk,'');
+      // `dirty` used to never reset once true, so GUARD 2 above (skip a blur
+      // with zero changes) stopped doing anything for the rest of the
+      // session — every later blur fired a real network write even with no
+      // edit. Reset it here, but ONLY if we're still on the same day and
+      // nothing changed since this snapshot was taken; if the user kept
+      // typing while this write was in flight, a newer write is already
+      // scheduled via fbSaveT and must not be skipped by a stale clean flag.
+      if(dk===loadedDk&&isHoliday===snapHol
+        &&JSON.stringify(slots)===JSON.stringify(snapSlots)
+        &&JSON.stringify(dayTimes)===JSON.stringify(snapTimes)){
+        dirty=false;
+      }
       showSync('synced');
     })
     .catch(err=>{showSync('offline',`${err.code||''} ${err.message||''}`.trim());throw err;});
@@ -726,8 +738,12 @@ function doRegister(){
   });
 }
 
-function doSignOut(){
-  flushAll(); // push any pending edits before the session ends
+async function doSignOut(){
+  const btn=document.getElementById('signout-btn');
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  await flushAll(); // must complete BEFORE signOut() invalidates the auth token,
+                     // otherwise an in-flight write can be rejected by security
+                     // rules and the last edit is stranded only in localStorage.
   auth.signOut().then(()=>{
     uid=null;
     if(fbUnsub){fbUnsub();fbUnsub=null;}
@@ -737,6 +753,7 @@ function doSignOut(){
     clearTimeout(fbIdealT);fbIdealT=null;
     hydrated=false;dirty=false;dirtyIdeal=false;
     remoteDays={};pendingRemote=null;clearTimeout(pendingRemoteT);
+    alreadyBooted=false;
     document.getElementById('app').style.display='none';
     document.getElementById('login-screen').style.display='flex';
     ls('tm_authed','');
@@ -769,7 +786,19 @@ auth.onAuthStateChanged(user=>{
 });
 
 // ── Boot ──────────────────────────────────────────────────
+// bootApp() can be triggered twice on a fresh page load: once immediately
+// from cached localStorage (so the schedule shows before Firebase resolves),
+// and again from auth.onAuthStateChanged once Firebase Auth finishes (timing
+// varies with network speed). Re-running the full render the second time
+// wipes and recreates every textarea in the DOM via innerHTML — which steals
+// focus (and closes the mobile keyboard) out from under anyone who started
+// typing during that window, making their text look like it vanished.
+// alreadyBooted guards against that: the local-load + full render only ever
+// runs once per session; the auth callback just needs uid + listenDay() after.
+let alreadyBooted=false;
 function bootApp(){
+  if(alreadyBooted)return;
+  alreadyBooted=true;
   try{const d=JSON.parse(ls('tm_times')||'{}');if(d.dayTimes)dayTimes={...DEF,...d.dayTimes};}catch(e){}
   try{const d=JSON.parse(ls('tm_ideal')||'{}');if(d&&typeof d==='object')idealSlots=d;}catch(e){}
   try{const d=JSON.parse(ls('tm_ideal_times')||'{}');if(d&&typeof d==='object'&&d.wake)idealTimes={...DEF,...d};}catch(e){}
@@ -807,20 +836,30 @@ function bootApp(){
 // closed — otherwise an edit made <1.5s before locking the phone never
 // reaches the cloud. Best-effort: the unsynced markers cover the rest.
 let lastAutoToday=null; // the "today" we auto-set in the date picker
-function flushAll(){flushSave();flushIdeal();}
+function flushAll(){return Promise.all([flushSave(),flushIdeal()]);}
 window.addEventListener('pagehide',flushAll);
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){flushAll();return;}
-  // Coming back to the foreground: if the PWA sat open past midnight and the
-  // picker still shows the old auto-selected "today", advance it — otherwise
-  // the morning's entries silently land on yesterday.
+
+// If the PWA sat open past midnight and the picker still shows the old
+// auto-selected "today", advance it — otherwise the morning's entries
+// silently land on yesterday. Never interrupt someone mid-keystroke: if
+// they're actively typing right at midnight, skip this cycle and let the
+// next check (next minute, or next time they background/foreground) catch it.
+function checkDateRollover(){
+  if(isTyping())return;
   const n=new Date();
   const realToday=`${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
   const dp=document.getElementById('date-pick');
   if(dp&&lastAutoToday&&dp.value===lastAutoToday&&realToday!==lastAutoToday){
     dp.value=realToday;lastAutoToday=realToday;onDateChange();
   }
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){flushAll();return;}
+  checkDateRollover();
 });
+// Belt-and-suspenders: a tab can stay foregrounded (no visibilitychange fires)
+// straight through midnight, e.g. a desktop browser left open overnight.
+setInterval(checkDateRollover,60000);
 
 // ── Tab navigation ────────────────────────────────────────
 function showTab(t){
@@ -1109,6 +1148,12 @@ function setSchedView(v){
   renderSched();
 }
 
+// Pure (non-mutating) slot-key calculation, used to preview what a time
+// change would produce before committing to it.
+function prospectiveAll(times,hol){
+  return hol?makeSlots(times.wake,times.sleep)
+            :[...makeSlots(times.wake,times.workReach),...makeSlots(times.workReach,times.workLeave),...makeSlots(times.workLeave,times.sleep)];
+}
 function applyTimes(ctx){
   const w=document.getElementById(`ti-wake-${ctx}`).value;
   const r=document.getElementById(`ti-reach-${ctx}`).value;
@@ -1122,19 +1167,34 @@ function applyTimes(ctx){
     alert('Check your times — expected Wake < Work start < Work end.');
     return;
   }
+  // Slot keys are literally the time ranges (e.g. "06:00-06:30"). Moving wake/
+  // work/sleep times shifts every boundary, which changes those keys — any
+  // plan/done text already typed under the OLD keys becomes orphaned (still
+  // stored, but never rendered again since it doesn't match a new key). Warn
+  // before that happens instead of silently hiding someone's typed entries.
+  const curTimes=ctx==='ideal'?idealTimes:dayTimes;
+  const curSlots=ctx==='ideal'?idealSlots:slots;
+  const curAll=ctx==='ideal'?idealALL:ALL;
+  const newTimes={
+    wake:validTime(w)?w:curTimes.wake,
+    workReach:validTime(r)?r:curTimes.workReach,
+    workLeave:validTime(l)?l:curTimes.workLeave,
+    sleep:validTime(s)?s:curTimes.sleep
+  };
+  const newAll=prospectiveAll(newTimes,isHoliday);
+  const newSet=new Set(newAll);
+  const orphaned=curAll.filter(t=>newSet.has(t)?false:dayHasContent({[t]:curSlots[t]}));
+  if(orphaned.length){
+    const ok=confirm(`Changing these times will shift ${orphaned.length} slot${orphaned.length>1?'s':''} that already ${orphaned.length>1?'have':'has'} text in ${orphaned.length>1?'them':'it'} — that text won't be deleted, but it won't show up under the new schedule either. Continue anyway?`);
+    if(!ok)return;
+  }
   if(ctx==='ideal'){
     dirtyIdeal=true;
-    if(validTime(w))idealTimes.wake=w;
-    if(validTime(r))idealTimes.workReach=r;
-    if(validTime(l))idealTimes.workLeave=l;
-    if(validTime(s))idealTimes.sleep=s;
+    idealTimes=newTimes;
     buildIdealSlots();saveIdeal();renderIdeal();
   } else {
     dirty=true;
-    if(validTime(w))dayTimes.wake=w;
-    if(validTime(r))dayTimes.workReach=r;
-    if(validTime(l))dayTimes.workLeave=l;
-    if(validTime(s))dayTimes.sleep=s;
+    dayTimes=newTimes;
     buildSlots();save();renderSched();
   }
 }
