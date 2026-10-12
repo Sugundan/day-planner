@@ -1,5 +1,5 @@
 /**
- * Day Planner → Google Sheets receiver
+ * Planner → Google Sheets receiver
  *
  * SETUP (one time, ~3 minutes):
  * 1. Open your Google Sheet (or create a new one at sheets.new)
@@ -7,16 +7,21 @@
  * 3. Delete any code there and paste this entire file
  * 4. Click Deploy → New deployment
  *    - Click the gear icon → select "Web app"
- *    - Description: Day Planner
+ *    - Description: Planner
  *    - Execute as: Me
  *    - Who has access: Anyone        ← important!
  * 5. Click Deploy → Authorize (choose your Google account,
  *    click "Advanced" → "Go to ... (unsafe)" → Allow)
  * 6. Copy the Web app URL (ends in /exec)
- * 7. Paste that URL into the Day Planner app's
+ * 7. Paste that URL into the Planner app's
  *    "Apps Script URL" field → tap "Save today's data"
  *
  * Done! The URL is remembered, so future saves are one click.
+ *
+ * UPDATING FROM AN OLDER VERSION (needed for the daily backup):
+ * paste this whole file over the old code, then
+ * Deploy → Manage deployments → pencil (Edit) → Version: New version → Deploy.
+ * The URL stays the same.
  */
 
 function doPost(e) {
@@ -28,6 +33,18 @@ function doPost(e) {
     // Always write to the sheet this script is attached to
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName(tabName);
+
+    // replace = true is used by the daily backup: keep the previous copy
+    // as "<tab> (previous)", then start the tab fresh.
+    if (data.replace === true && rows.length > 0) {
+      if (sheet && sheet.getLastRow() > 0) {
+        var oldPrev = ss.getSheetByName(tabName + ' (previous)');
+        if (oldPrev) ss.deleteSheet(oldPrev);
+        var copy = sheet.copyTo(ss);
+        copy.setName(tabName + ' (previous)');
+        sheet.clear();
+      }
+    }
 
     // Create the tab if it doesn't exist yet
     if (!sheet) {
@@ -65,9 +82,22 @@ function doPost(e) {
   }
 }
 
-// Simple GET so you can test the URL in a browser
-function doGet() {
-  return out('Day Planner receiver is running. Use the app to save data.');
+// GET: with no parameters it just says it is running (the app checks for "receiver v2").
+// ?action=read&tab=NAME returns that tab's rows as JSON (used by "Restore from backup").
+function doGet(e) {
+  var p = (e && e.parameter) || {};
+  if (p.action === 'read') {
+    try {
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(p.tab || '');
+      var rows = sh && sh.getLastRow() > 0 ? sh.getDataRange().getValues() : [];
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, rows: rows }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: String(err.message) }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+  return out('Planner receiver v2 is running. Use the app to save data.');
 }
 
 function out(msg) {

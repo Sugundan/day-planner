@@ -1,5 +1,5 @@
-/* Day Planner — Service Worker (offline support) */
-const CACHE = 'day-planner-v27';
+/* Planner — Service Worker (offline support) */
+const CACHE = 'day-planner-v41';
 const ASSETS = [
   './',
   './index.html',
@@ -14,7 +14,7 @@ const ASSETS = [
 // Install: pre-cache the app shell
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((cache) => Promise.all(ASSETS.map((u) => cache.add(new Request(u, { cache: 'reload' }))))).then(() => self.skipWaiting())
   );
 });
 

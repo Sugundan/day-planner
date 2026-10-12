@@ -1,6 +1,6 @@
 {
-  "name": "Day Planner",
-  "short_name": "Day Planner",
+  "name": "Planner",
+  "short_name": "Planner",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
