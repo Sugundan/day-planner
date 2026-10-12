@@ -484,9 +484,9 @@ body.desk #ideal-container{display:block}
       <div class="card">
         <div class="card-title"><i class="ti ti-table-export"></i> Export to Google Sheets</div>
         <div class="field-label">Apps Script URL</div>
-        <input class="field-input" id="sheet-url" type="url" placeholder="https://script.google.com/.../exec"/>
+        <input class="field-input" id="sheet-url" type="url" placeholder="https://script.google.com/.../exec" onchange="saveSheetSettings()"/>
         <div class="field-label">Sheet tab name</div>
-        <input class="field-input" id="sheet-tab" type="text" value="Daily Log"/>
+        <input class="field-input" id="sheet-tab" type="text" value="Daily Log" onchange="saveSheetSettings()"/>
         <div class="field-label">Export from — to</div>
         <div style="display:flex;gap:8px">
           <input class="field-input" id="exp-from" type="date" style="flex:1"/>
@@ -534,7 +534,7 @@ body.desk #ideal-container{display:block}
 </div>
 
 <script>
-const BUILD='v5.8 — 12 Oct 2026';
+const BUILD='v5.9 — 13 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -620,7 +620,7 @@ const DESK_MIN=900;   // desktop layout is automatic on windows this wide; phone
 function wantDesk(){return window.innerWidth>=DESK_MIN&&ls('tm_view')!=='phone';}
 document.body.classList.toggle('desk',wantDesk());
 if(document.body.classList.contains('desk')){document.body.classList.add('d-both');document.getElementById('sec-intent').classList.add('on');document.getElementById('mini-cal').dataset.on='1';}
-let rvNote={},autoTried=false,deskTab='slots',calSel='',calY=0,calM=0;
+let sheetPushed=false,rvNote={},autoTried=false,deskTab='slots',calSel='',calY=0,calM=0;
 let periods=(()=>{try{const o=JSON.parse(ls('tm_periods')||'{}'),r={};Object.keys(o).forEach(k=>{r[k]=normPeriod(o[k]);});return r;}catch(e){return{};}})();
 let remotePeriods={},periodDirty=new Set(),periodT=null;
 let goalType='week',goalView='all',goalCursor=null,goalReviewOpen=false,visionLast='intent';
@@ -852,6 +852,7 @@ function flushIdeal(){
 
 let pendingRemote=null,pendingRemoteT=null;
 function applyRemote(d){
+  adoptSheetSettings(d);
   // Never apply remote state over unsaved local edits: wait until the user
   // stops typing AND the debounced save has flushed, then apply the latest
   // snapshot we received (newer snapshots replace older pending ones).
@@ -1745,7 +1746,7 @@ async function exportSheets(mode){
   if(exportInFlight)return; // double-tap = duplicate rows in the sheet
   const url=document.getElementById('sheet-url').value.trim();
   const tab=document.getElementById('sheet-tab').value.trim()||'Daily Log';
-  ls('tm_sheet_url',url);ls('tm_sheet_tab',tab);
+  ls('tm_sheet_url',url);ls('tm_sheet_tab',tab);saveSheetSettings();
   const msg=document.getElementById('sheet-msg');
   const ok=sheetUrlOk(url);
   if(!ok){msg.innerHTML='<div class="msg err">Paste your Apps Script /exec URL.</div>';return;}
@@ -2247,6 +2248,7 @@ async function runBackup(manual){
       &&Object.keys(snap.periods).length===Object.keys(back.periods).length&&JSON.stringify(canon(snap.ideal))===JSON.stringify(canon(back.ideal||{}));
     if(!same)throw new Error('The saved backup did not match your data when read back. Nothing was lost, but please try again.');
     ls('tm_bk_at',new Date().toISOString());ls('tm_bk_n',String(n));ls('tm_bk_day',ymd(new Date()));
+    db.collection('time-mgmt').doc(uid).set({bkDay:ls('tm_bk_day'),bkAt:ls('tm_bk_at'),bkN:n},{merge:true}).catch(()=>{});   // other devices skip today's automatic backup
     bkStatus();bkMsg(`Backed up ${n} day${n===1?'':'s'}, ${Object.keys(snap.periods).length} vision period${Object.keys(snap.periods).length===1?'':'s'} and your ideal day. Checked by reading it back.`);
     return true;
   }catch(e){
@@ -2313,6 +2315,33 @@ async function restoreBackup(tab){
     bkMsg(`Restored ${dayKeys.length} day${dayKeys.length===1?'':'s'}${perKeys.length?` and ${perKeys.length} vision period${perKeys.length===1?'':'s'}`:''}.`);
   }catch(e){bkMsg('Restore stopped: '+(e&&e.message||'unknown error')+'. Nothing was half-changed in a way that loses data; check your days and try again.','err');}
   finally{bkBusy=false;}
+}
+
+// ── Sheet URL follows your account to every device (newest edit wins) ──
+function saveSheetSettings(){
+  const u=document.getElementById('sheet-url'),t=document.getElementById('sheet-tab');if(!u||!t)return;
+  const url=u.value.trim(),tab=t.value.trim()||'Daily Log';
+  if(url&&!sheetUrlOk(url))return;
+  if(url===(ls('tm_sheet_url')||'')&&tab===(ls('tm_sheet_tab')||'Daily Log')&&sheetPushed)return;
+  ls('tm_sheet_url',url);ls('tm_sheet_tab',tab);pushSheetSettings();
+}
+function pushSheetSettings(){
+  const url=(ls('tm_sheet_url')||'').trim();
+  if(!uid||!hydrated||!sheetUrlOk(url))return;
+  const at=Date.now();ls('tm_sheet_at',String(at));sheetPushed=true;
+  db.collection('time-mgmt').doc(uid).set({sheetUrl:url,sheetTab:ls('tm_sheet_tab')||'Daily Log',sheetAt:at,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(()=>{sheetPushed=false;});
+}
+function adoptSheetSettings(d){
+  if(!d)return;
+  if(d.bkDay&&d.bkDay>(ls('tm_bk_day')||'')){ls('tm_bk_day',d.bkDay);ls('tm_bk_at',d.bkAt||'');ls('tm_bk_n',String(d.bkN||0));bkStatus();}
+  const mine=Number(ls('tm_sheet_at'))||0,at=Number(d.sheetAt)||0,local=(ls('tm_sheet_url')||'').trim();
+  if(d.sheetUrl&&sheetUrlOk(d.sheetUrl)&&(at>mine||!local)){
+    ls('tm_sheet_url',d.sheetUrl);ls('tm_sheet_tab',d.sheetTab||'Daily Log');ls('tm_sheet_at',String(at));sheetPushed=true;
+    const u=document.getElementById('sheet-url'),t=document.getElementById('sheet-tab');
+    if(u&&document.activeElement!==u)u.value=d.sheetUrl;
+    if(t&&document.activeElement!==t)t.value=d.sheetTab||'Daily Log';
+    bkStatus();
+  }else if(!d.sheetUrl&&!sheetPushed&&sheetUrlOk(local)){pushSheetSettings();}   // this device already had it: share it with the others
 }
 </script>
 </body>
