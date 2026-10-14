@@ -235,6 +235,17 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Displ
 .eodcol+.eodcol{border-top:1px solid var(--border2);margin-top:20px;padding-top:18px}
 .eodcol>.eod-sec+.rv-text,.eodcol>.eod-sec{margin-top:0}
 .eod-sec:first-child{margin-top:0}
+.lock-card{width:100%;max-width:340px;text-align:center}
+#lock-screen{display:none;position:fixed;inset:0;z-index:3000;background:var(--bg3);align-items:center;justify-content:center;padding:24px}
+html.locked #lock-screen{display:flex}
+.lock-pin::placeholder{letter-spacing:0;font-size:15px}
+.lock-ic{font-size:40px;color:var(--accent);margin-bottom:6px}
+.lock-card h2{font-size:20px;margin-bottom:4px}
+.lock-card p{font-size:13px;color:var(--text2);margin-bottom:16px}
+.lock-card .btn-primary,.lock-card .btn-secondary{margin-top:10px}
+.lock-pin{text-align:center;font-size:22px;letter-spacing:6px;margin-top:10px}
+.lock-card .login-err{min-height:18px;margin:8px 0}
+.lk-row{display:flex;gap:8px}.lk-row .field-input{flex:1;min-width:0}
 .bk-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
 .rv-pt{padding:9px 0;border-top:0.5px solid var(--border2)}
 .eod-sec+.rv-pt,.rv-pt:first-child{border-top:none;padding-top:2px}
@@ -360,6 +371,19 @@ body.desk #ideal-container{display:block}
 </style>
 </head>
 <body>
+<script>try{var _u=+localStorage.getItem('tm_unlocked_at')||0,_n=Date.now();if(localStorage.getItem('tm_lock_h')&&(!sessionStorage.getItem('tm_sess')||_n-_u>14400000||_n<_u))document.documentElement.classList.add('locked');}catch(e){}</script>
+<div id="lock-screen" role="dialog" aria-modal="true" aria-label="Unlock Planner">
+  <div class="lock-card">
+    <div class="lock-ic"><i class="ti ti-lock"></i></div>
+    <h2>Planner is locked</h2>
+    <p id="lock-sub">Use your fingerprint or enter your number code.</p>
+    <button class="btn-primary" id="lock-fp" onclick="unlockFingerprint()" style="display:none"><i class="ti ti-fingerprint"></i> Use fingerprint</button>
+    <input class="field-input lock-pin" id="lock-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="8" placeholder="Number code" onkeydown="if(event.key==='Enter')unlockPin()"/>
+    <button class="btn-secondary" id="lock-go" onclick="unlockPin()">Unlock</button>
+    <div class="login-err" id="lock-err"></div>
+    <button class="btn-sm" onclick="lockForgot()">Forgot code? Sign out to reset</button>
+  </div>
+</div>
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
@@ -504,6 +528,11 @@ body.desk #ideal-container{display:block}
         <div id="sheet-msg"></div>
       </div>
       <div class="card">
+        <div class="card-title"><i class="ti ti-lock"></i> App lock</div>
+        <div id="lock-box"></div>
+        <div id="lock-msg"></div>
+      </div>
+      <div class="card">
         <div class="card-title"><i class="ti ti-shield-check"></i> Daily backup</div>
         <div class="slp-sub" style="padding:0 0 10px">Once a day the app copies all your data to a “Planner Backup” tab in your Google Sheet (uses the Apps Script URL above). The previous copy is kept too, and every backup is read back to check it.</div>
         <label class="bk-row"><input type="checkbox" id="bk-auto" onchange="ls('tm_bk_auto',this.checked?'':'off')"/> Back up automatically every day</label>
@@ -534,7 +563,7 @@ body.desk #ideal-container{display:block}
 </div>
 
 <script>
-const BUILD='v5.9 — 13 Oct 2026';
+const BUILD='v6.0 — 13 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -1905,7 +1934,7 @@ async function upgradeCloud(auto){
 // Cloud storage upgrade now runs by itself, once per app load, after the cloud data has loaded. It only COPIES days and verifies every copy before switching; any problem leaves the data as it was.
 function autoUpgrade(){if(autoTried||!uid||!hydrated||layout2||migBusy||isTyping())return;autoTried=true;upgradeCloud(true);}
 setInterval(autoUpgrade,6000);
-function openSettings(){updateCloudSize();renderLayoutBox();updateViewUi();bkStatus();document.getElementById('settings').classList.add('open');}
+function openSettings(){renderLockBox();updateCloudSize();renderLayoutBox();updateViewUi();bkStatus();document.getElementById('settings').classList.add('open');}
 function closeSettings(){const el=document.getElementById('settings');if(el)el.classList.remove('open');}
 
 // ── Priority intentions + end-of-day review ───────────────
@@ -2343,6 +2372,105 @@ function adoptSheetSettings(d){
     bkStatus();
   }else if(!d.sheetUrl&&!sheetPushed&&sheetUrlOk(local)){pushSheetSettings();}   // this device already had it: share it with the others
 }
+
+// ── App lock: number code and/or fingerprint; asks again after 4 hours or when the app was closed ──
+// This protects the app on this device. Your data stays protected by your account sign-in as before.
+const LOCK_MS=4*3600*1000;
+const b64e=u=>btoa(String.fromCharCode(...u)),b64d=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+async function lockHash(pin,saltB64){
+  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);
+  return b64e(new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:b64d(saltB64),iterations:150000,hash:'SHA-256'},key,256)));
+}
+async function lockMake(pin){const salt=b64e(crypto.getRandomValues(new Uint8Array(16)));return salt+'.'+await lockHash(pin,salt);}
+async function lockCheckPin(pin){
+  const h=ls('tm_lock_h')||'';const [salt,hash]=h.split('.');if(!salt||!hash)return false;
+  const x=await lockHash(pin,salt);let d=x.length^hash.length;for(let i=0;i<x.length;i++)d|=x.charCodeAt(i)^(hash.charCodeAt(i)||0);return d===0;
+}
+function lockOn(){return !!ls('tm_lock_h');}
+function lockNeeded(){const u=Number(ls('tm_unlocked_at'))||0,n=Date.now();let sess='';try{sess=sessionStorage.getItem('tm_sess');}catch(e){}
+  return lockOn()&&(!sess||n-u>LOCK_MS||n<u);}
+function lockMark(){ls('tm_unlocked_at',String(Date.now()));try{sessionStorage.setItem('tm_sess','1');}catch(e){}}
+function lockSet(inertOn){['app','login-screen'].forEach(id=>{const e=document.getElementById(id);if(e)e.inert=inertOn;});}
+function showLock(){
+  document.documentElement.classList.add('locked');lockSet(true);
+  const fp=document.getElementById('lock-fp');if(fp)fp.style.display=ls('tm_lock_cred')?'':'none';
+  const pin=document.getElementById('lock-pin');if(pin){pin.value='';}
+  document.getElementById('lock-err').textContent='';lockFailUi();
+  if(ls('tm_lock_cred'))setTimeout(()=>unlockFingerprint(true),300);else if(pin)setTimeout(()=>pin.focus(),100);
+}
+function hideLock(){lockMark();document.documentElement.classList.remove('locked');lockSet(false);const p=document.getElementById('lock-pin');if(p)p.value='';ls('tm_lock_fail','');ls('tm_lock_until','');}
+function lockFailUi(){
+  const until=Number(ls('tm_lock_until'))||0,wait=Math.ceil((until-Date.now())/1000),b=document.getElementById('lock-go'),e=document.getElementById('lock-err');
+  if(wait>0){if(b)b.disabled=true;if(e)e.textContent=`Too many tries. Wait ${wait}s.`;setTimeout(lockFailUi,1000);}
+  else if(b){b.disabled=false;if(e&&/Too many/.test(e.textContent))e.textContent='';}
+}
+async function unlockPin(){
+  const pin=(document.getElementById('lock-pin').value||'').trim(),e=document.getElementById('lock-err');
+  if((Number(ls('tm_lock_until'))||0)>Date.now())return;
+  if(!/^\d{4,8}$/.test(pin)){e.textContent='Enter your 4 to 8 digit code.';return;}
+  if(await lockCheckPin(pin)){hideLock();return;}
+  const n=(Number(ls('tm_lock_fail'))||0)+1;ls('tm_lock_fail',String(n));
+  if(n>=5){ls('tm_lock_until',String(Date.now()+30000*(n-4)));lockFailUi();}
+  else e.textContent=`Wrong code. ${5-n} more tr${5-n===1?'y':'ies'} before a short wait.`;
+  document.getElementById('lock-pin').value='';
+}
+async function unlockFingerprint(quiet){
+  const e=document.getElementById('lock-err');
+  try{
+    await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:b64d(ls('tm_lock_cred')),transports:['internal']}],userVerification:'required',timeout:60000}});
+    hideLock();
+  }catch(err){if(!quiet)e.textContent='Fingerprint did not work. Use your number code.';}
+}
+async function lockEnrollFingerprint(){
+  if(!window.PublicKeyCredential||!navigator.credentials){lockMsg('This browser cannot use a fingerprint here.','err');return;}
+  try{
+    if(window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable&&!(await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())){lockMsg('This device has no fingerprint or screen-lock sensor set up.','err');return;}
+    const cred=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Planner'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'planner',displayName:'Planner'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000,attestation:'none'}});
+    ls('tm_lock_cred',b64e(new Uint8Array(cred.rawId)));renderLockBox();lockMsg('Fingerprint is on for this device. Your number code still works as a backup.');
+  }catch(err){lockMsg('Fingerprint was not set up'+(err&&err.name==='NotAllowedError'?' (cancelled).':'.'),'err');}
+}
+function lockMsg(m,c){const e=document.getElementById('lock-msg');if(e)e.innerHTML=m?`<div class="msg ${c||'ok'}">${esc(m)}</div>`:'';}
+function renderLockBox(){
+  const el=document.getElementById('lock-box');if(!el)return;
+  const pinField=(id,ph)=>`<input class="field-input" id="${id}" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="${ph}"/>`;
+  if(!lockOn()){
+    el.innerHTML=`<div class="slp-sub" style="padding:0 0 10px">Ask for a fingerprint or a number code when the app is opened, and again every 4 hours. This device only.</div>${pinField('lk-new','New number code (4 to 8 digits)')}${pinField('lk-new2','Repeat the code')}<button class="btn-primary" onclick="lockTurnOn()"><i class="ti ti-lock"></i> Turn on app lock</button>`;
+  }else{
+    const fp=!!ls('tm_lock_cred');
+    el.innerHTML=`<div class="slp-sub" style="padding:0 0 10px">On. Asks when the app is opened and every 4 hours. Fingerprint: ${fp?'on':'off'}.</div>
+      ${fp?`<button class="btn-secondary" onclick="ls('tm_lock_cred','');renderLockBox();lockMsg('Fingerprint turned off.')"><i class="ti ti-fingerprint-off"></i> Turn off fingerprint</button>`:`<button class="btn-secondary" onclick="lockEnrollFingerprint()"><i class="ti ti-fingerprint"></i> Use fingerprint too</button>`}
+      <div class="field-label" style="margin-top:14px">Change code or turn off</div>${pinField('lk-cur','Current code')}${pinField('lk-new','New code (to change it)')}
+      <div class="lk-row"><button class="btn-secondary" onclick="lockChange()">Change code</button><button class="btn-secondary" onclick="lockTurnOff()">Turn off lock</button></div>`;
+  }
+}
+const lkv=id=>((document.getElementById(id)||{}).value||'').trim();
+async function lockTurnOn(){
+  const a=lkv('lk-new'),b=lkv('lk-new2');
+  if(!/^\d{4,8}$/.test(a)){lockMsg('The code must be 4 to 8 digits.','err');return;}
+  if(a!==b){lockMsg('The two codes do not match.','err');return;}
+  ls('tm_lock_h',await lockMake(a));lockMark();renderLockBox();lockMsg('App lock is on. It will ask again after 4 hours or when you reopen the app.');
+}
+async function lockChange(){
+  if(!(await lockCheckPin(lkv('lk-cur')))){lockMsg('Current code is wrong.','err');return;}
+  const n=lkv('lk-new');if(!/^\d{4,8}$/.test(n)){lockMsg('The new code must be 4 to 8 digits.','err');return;}
+  ls('tm_lock_h',await lockMake(n));renderLockBox();lockMsg('Code changed.');
+}
+async function lockTurnOff(){
+  if(!(await lockCheckPin(lkv('lk-cur')))){lockMsg('Enter your current code to turn the lock off.','err');return;}
+  ls('tm_lock_h','');ls('tm_lock_cred','');ls('tm_unlocked_at','');renderLockBox();lockMsg('App lock is off.');
+}
+function lockForgot(){
+  if(!confirm('Sign out of Planner on this device and remove the lock?\n\nYour data stays safe in your account. You will sign in again with your email and password.'))return;
+  ls('tm_lock_h','');ls('tm_lock_cred','');ls('tm_unlocked_at','');ls('tm_authed','');
+  try{sessionStorage.removeItem('tm_sess');}catch(e){}
+  hideLock();
+  if(typeof auth!=='undefined'&&auth)auth.signOut().catch(()=>{}).finally(()=>location.reload());else location.reload();
+}
+function lockTick(){if(lockOn()&&lockNeeded()&&!document.documentElement.classList.contains('locked')&&!isTyping())showLock();}
+if(lockNeeded())showLock();
+setInterval(lockTick,60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')lockTick();});
 </script>
 </body>
 </html>
