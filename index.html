@@ -356,6 +356,7 @@ body.desk:not(.d-both) .intgrid .int-field{margin-bottom:0}
 body.desk:not(.d-both) .eodcol+.eodcol{border-top:none;margin-top:0;padding-top:0}
 body.desk #goals-body{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start;max-width:1100px}
 body.desk #goals-body>.eod-btn{grid-column:1/-1;justify-self:start}
+body.desk.d-both #overdue-day{display:none}
 body.desk #overdue-box,body.desk #day-top .eod-btn{max-width:none}
 body.desk #sec-goals>.date-nav{max-width:420px}
 body.desk .sheet{max-width:680px;border-radius:18px}
@@ -368,6 +369,27 @@ body.desk #ideal-container{display:block}
   body.desk #app[style*="flex"]{grid-template-columns:220px minmax(0,1fr)}
   body.desk.d-both #sec-intent{grid-column:2;grid-row:3;min-height:0;padding-top:16px !important;border-left:none;border-top:0.5px solid var(--border)}
 }
+.rvp-sheet{display:flex;flex-direction:column}
+#gedit{background:var(--bg);align-items:stretch}
+#gedit .rvp-sheet,body.desk #gedit .rvp-sheet{max-width:none;width:100%;height:100%;max-height:none;border-radius:0;background:var(--bg);padding:16px 18px 22px;overflow-y:auto}
+.rvp-in{width:100%;max-width:720px;margin:0 auto;flex:1;display:flex;flex-direction:column}
+.rvp-write{width:100%;flex:1;min-height:42vh;resize:none;border:1px solid var(--border2);border-radius:14px;background:var(--bg);color:var(--text);font-family:inherit;font-size:16px;line-height:1.5;padding:14px 16px;margin-top:16px;outline:none}
+.rvp-write:focus{border-color:var(--accent)}
+.ged-name{resize:none;font-size:18px;font-weight:700;line-height:1.35}
+.gl-open{border:none;background:transparent;color:var(--text3);font-size:19px;padding:8px 6px;cursor:pointer;flex-shrink:0;display:flex}
+.gl-open.has{color:var(--accent)}
+.gl-add{display:flex;align-items:center;gap:6px;padding:4px 4px 4px 12px;border-top:0.5px solid var(--border2)}
+.gl-in{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--text);font-family:inherit;font-size:14px;padding:10px 0}
+.gl-in::placeholder{color:var(--text3)}
+.gl-plus{border:none;background:transparent;color:var(--accent);font-size:20px;padding:6px;cursor:pointer;display:flex}
+.gl-row{display:flex;align-items:center;gap:4px;padding:2px 4px 2px 0;border-top:0.5px solid var(--border2)}
+.gl-row:first-child{border-top:none}
+.gl-txt{flex:1;min-width:0;text-align:left;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:14px;line-height:1.4;padding:10px 6px 10px 12px;cursor:pointer;overflow-wrap:anywhere;white-space:pre-wrap}
+.gl-ord{display:flex;flex-direction:column;flex-shrink:0}
+.rvp-del{border:none;background:transparent;color:var(--red);font-weight:700;font-family:inherit;font-size:14px;cursor:pointer;padding:10px}
+.rvp-nav{display:flex;gap:10px;margin-top:auto;padding-top:22px}
+.rvp-nav button{flex:1;margin:0}
+.rvp-count{font-size:12px;color:var(--text3);margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -456,6 +478,7 @@ body.desk #ideal-container{display:block}
 
   <!-- INTENTIONS -->
   <div class="section" id="sec-intent">
+    <div id="overdue-day"></div>
     <div class="sub-tabs">
       <button class="sub-tab on-all" id="iv-all" onclick="setIntView('all')"><i class="ti ti-layout-list"></i> All</button>
       <button class="sub-tab" id="iv-work" onclick="setIntView('work')"><i class="ti ti-briefcase"></i> Work</button>
@@ -479,6 +502,20 @@ body.desk #ideal-container{display:block}
     </div>
     <div style="text-align:center;margin-bottom:12px"><button class="today-btn" id="gn-cur" onclick="goCurrentPeriod()" style="display:none">Back to current</button></div>
     <div id="goals-body"></div>
+  </div>
+
+  <div class="sheet-wrap" id="gedit">
+    <div class="sheet sheet-lg rvp-sheet">
+      <div class="rvp-in">
+        <div class="sheet-hdr"><span id="ged-title"></span><button class="icon-btn" onclick="closeGedit()" aria-label="Save and close"><i class="ti ti-x"></i></button></div>
+        <div class="rvp-count" id="ged-sub"></div>
+        <div class="field-label" style="margin-top:6px">Name</div>
+        <textarea class="field-input ged-name" id="ged-text" rows="2" maxlength="200"></textarea>
+        <div class="field-label" style="margin-top:14px">Details</div>
+        <textarea class="rvp-write" id="ged-detail" maxlength="4000" style="margin-top:0" placeholder="Describe this intention: why it matters, the steps, how you will know it is done…"></textarea>
+        <div class="rvp-nav" id="ged-nav"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ADD TO SCHEDULE -->
@@ -563,7 +600,7 @@ body.desk #ideal-container{display:block}
 </div>
 
 <script>
-const BUILD='v6.0 — 13 Oct 2026';
+const BUILD='v6.6 — 14 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -617,7 +654,7 @@ const KMETA={work:{lbl:'Work',ic:'ti-briefcase',ph:'What must move forward at wo
 let lastAutoToday=null; // the "today" we auto-set in the date picker
 const PT_ST=['done','partial','missed'];
 function normPts(a,oldTxt,oldSt){
-  if(Array.isArray(a))return a.map(x=>({t:String((x&&x.t)||''),s:PT_ST.includes(x&&x.s)?x.s:'',c:String((x&&x.c)||'')}));
+  if(Array.isArray(a))return a.map(x=>{const o={t:String((x&&x.t)||''),s:PT_ST.includes(x&&x.s)?x.s:'',c:String((x&&x.c)||'')};if(x&&x.d)o.d=String(x.d);return o;});
   if(typeof oldTxt==='string'&&oldTxt.trim())return[{t:oldTxt,s:PT_ST.includes(oldSt)?oldSt:'',c:''}];
   return[];
 }
@@ -763,6 +800,8 @@ function writeDayNow(){
     ls('tm_bak_'+dk,JSON.stringify(remote||{}));
     ls(`tm_${dk}`,JSON.stringify(remote||{}));
     ls('tm_int_'+dk,JSON.stringify(remoteIntent));
+    ls('tm_unsynced_'+dk,'');   // local now equals the cloud copy: a leftover marker would later push this stale copy over a newer edit from another device
+    if(dk===loadedDk)dirty=false;
     if(dk===dateKey()){ // only touch the screen if this day is still open
       slots={...(remote||{})};intent=remoteIntent;
       buildSlots();renderSched();
@@ -1747,7 +1786,7 @@ const GOAL_HDR=['Period type','Period','Dates','Category','Type','Item','Status'
 function buildReviewRows(dk,d){
   const it=normIntent(d.intent),date=fmtDate(dk),out=[];
   [['Work','work'],['Life','life']].forEach(([cat,k])=>{
-    it[k].forEach(p=>{if(p.t.trim())out.push([date,cat,'Intention',p.t.trim(),STLBL[p.s]||'',(p.c||'').trim()]);});
+    it[k].forEach(p=>{if(p.t.trim()){out.push([date,cat,'Intention',p.t.trim(),STLBL[p.s]||'',(p.c||'').trim()]);if((p.d||'').trim())out.push([date,cat,'Intention detail',p.d.trim(),'','']);}});
     it[k+'Extra'].forEach(p=>{if(p.t.trim())out.push([date,cat,'Other thing done',p.t.trim(),'','']);});
     const sm=(it[k+'Summary']||'').trim();if(sm)out.push([date,cat,'Summary',sm,'','']);
     if(it[k+'Reviewed'])out.push([date,cat,'Review','Done','','']);
@@ -1764,7 +1803,7 @@ function buildDaySummaryRow(dk,d){
   const lpo=hol?[]:makeSlots(dt.workLeave,dt.sleep);
   const life=[...lp,...lpo];
   const dn=a=>a.filter(t=>isDone(s[t]||{})).length;
-  const pts=k=>it[k].filter(p=>p.t.trim()).map(p=>`• ${p.t.trim()}${p.s?` [${STLBL[p.s]}]`:''}${(p.c||'').trim()?` — ${p.c.trim()}`:''}`).join('\n');
+  const pts=k=>it[k].filter(p=>p.t.trim()).map(p=>`• ${p.t.trim()}${(p.d||'').trim()?` {${p.d.trim().replace(/\s*\n+\s*/g,' / ')}}`:''}${p.s?` [${STLBL[p.s]}]`:''}${(p.c||'').trim()?` — ${p.c.trim()}`:''}`).join('\n');
   const ex=k=>it[k+'Extra'].filter(p=>p.t.trim()).map(p=>`• ${p.t.trim()}`).join('\n');
   const [y,m,dd]=dk.split('-').map(Number);
   return[fmtDate(dk),new Date(y,m-1,dd).toLocaleDateString('en-IN',{weekday:'short'}),hol?'Holiday':'Workday',dt.wake,hol?'':dt.workReach,hol?'':dt.workLeave,dt.sleep,dn(w),w.length,dn(life),life.length,pts('work'),pts('life'),ex('work'),ex('life'),(it.workSummary||'').trim(),(it.lifeSummary||'').trim()];
@@ -1863,7 +1902,7 @@ function setDate(dt){
 function shiftDay(n){const [y,m,d]=dateKey().split('-').map(Number);setDate(new Date(y,m-1,d+n));}
 function goToday(){setDate(new Date());}
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeIdeal();closeSettings();closePicker();return;}
+  if(e.key==='Escape'){closeIdeal();closeSettings();closePicker();closeGedit();return;}
   if((e.key!=='ArrowLeft'&&e.key!=='ArrowRight')||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
   const t=e.target;if(t&&t.matches&&t.matches('input,textarea,select,[contenteditable]'))return;
   if(document.getElementById('settings').classList.contains('open')||document.getElementById('picker').classList.contains('open')||document.getElementById('ideal-sheet').classList.contains('open')||document.getElementById('app').style.display==='none')return;
@@ -2000,7 +2039,7 @@ function doImport(){
   updSlot(t,'plan',cur?cur+'\n'+txt:txt);
   closePicker();toast('Added to '+slotLbl(t));
 }
-function intentGroup(kind){const m=KMETA[kind];return`<div class="int-field int-${kind}"><div class="int-lbl"><i class="ti ${m.ic}"></i> ${m.lbl}</div>${ptList(kind,m.ph,'Next priority…',true)}</div>`;}
+function intentGroup(kind){const m=KMETA[kind];return`<div class="int-field int-${kind}"><div class="int-lbl"><i class="ti ${m.ic}"></i> ${m.lbl}</div>${glList(kind,0+1,m.ph)}</div>`;}
 
 function toggleNote(kind,i){const k=kind+'|'+i;rvNote[k]=!rvNote[k];rerenderFor(kind);const t=document.getElementById(`rc-${kind}-${i}`);if(t&&rvNote[k])t.focus();}
 function reviewGroup(kind){
@@ -2129,7 +2168,7 @@ function overdueItems(){
   return out.sort((a,b)=>a.end<b.end?-1:a.end>b.end?1:0);
 }
 function updateOverdueBadge(){
-  const n=overdueItems().length,b=document.getElementById('od-badge');
+  const n=overdueItems().length,b=document.getElementById('od-badge');renderOverdue();
   if(b){b.textContent=n>99?'99+':n;b.style.display=n?'':'none';}
   return n;
 }
@@ -2138,13 +2177,14 @@ function overdueLabel(x){
   return {week:'Week',month:'Month',year:'Year'}[x.type]+' · '+periodLabel(x.key).main;
 }
 function renderOverdue(){
-  const el=document.getElementById('overdue-box');if(!el)return;
-  const items=overdueItems().filter(x=>goalView==='all'||x.kind===goalView);
-  if(!items.length){el.innerHTML='';return;}
-  const t0=new Date();t0.setHours(0,0,0,0);
-  el.innerHTML=`<div class="card od-card"><div class="card-title" style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Overdue reviews (${items.length})</div>`
-    +items.map(x=>{const[y,m,d]=x.end.split('-').map(Number),n=Math.round((t0-new Date(y,m-1,d))/86400000);
-      return`<button class="od-row" onclick="goOverdue('${x.type}','${x.kind}','${x.key}')"><span class="od-kind k-${x.kind}">${KMETA[x.kind].lbl}</span><span class="od-txt">${esc(overdueLabel(x))}</span><span class="od-ago">${n} day${n>1?'s':''} overdue</span><i class="ti ti-chevron-right"></i></button>`;}).join('')+`</div>`;
+  const all=overdueItems(),t0=new Date();t0.setHours(0,0,0,0);
+  [['overdue-box',all.filter(x=>goalView==='all'||x.kind===goalView)],['overdue-day',all]].forEach(([id,items])=>{   // Vision · Week/Month/Year follows its Work/Life filter; Vision · Day shows all
+    const el=document.getElementById(id);if(!el)return;
+    if(!items.length){el.innerHTML='';return;}
+    el.innerHTML=`<div class="card od-card"><div class="card-title" style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Overdue reviews (${items.length})</div>`
+      +items.map(x=>{const[y,m,d]=x.end.split('-').map(Number),n=Math.round((t0-new Date(y,m-1,d))/86400000);
+        return`<button class="od-row" onclick="goOverdue('${x.type}','${x.kind}','${x.key}')"><span class="od-kind k-${x.kind}">${KMETA[x.kind].lbl}</span><span class="od-txt">${esc(overdueLabel(x))}</span><span class="od-ago">${n} day${n>1?'s':''} overdue</span><i class="ti ti-chevron-right"></i></button>`;}).join('')+'</div>';
+  });
 }
 function goOverdue(type,kind,key){
   if(type==='day'){
@@ -2172,7 +2212,7 @@ function buildGoalRows(key,P){
   const lab=periodLabel(key),{s,e}=periodRange(key),type={w:'Week',m:'Month',y:'Year'}[key[0]],dates=`${ymd(s)} – ${ymd(e)}`,out=[];
   [['Work','work'],['Life','life']].forEach(([cat,k])=>{
     const x=P[k];
-    x.g.forEach(p=>{if(p.t.trim())out.push([type,lab.main,dates,cat,'Vision',p.t.trim(),STLBL[p.s]||'',(p.c||'').trim()]);});
+    x.g.forEach(p=>{if(p.t.trim()){out.push([type,lab.main,dates,cat,'Vision',p.t.trim(),STLBL[p.s]||'',(p.c||'').trim()]);if((p.d||'').trim())out.push([type,lab.main,dates,cat,'Vision detail',p.d.trim(),'','']);}});
     if(x.r.trim())out.push([type,lab.main,dates,cat,'Review notes',x.r.trim(),'','']);
     if(x.d)out.push([type,lab.main,dates,cat,'Review','Done','','']);
   });
@@ -2187,7 +2227,8 @@ function renderGoals(){
   document.getElementById('gn-cur').style.display=goalCursor===curKey(goalType,new Date())?'none':'';
   renderOverdue();
   const kinds=goalView==='all'?['work','life']:[goalView],noun=goalType;
-  let h=kinds.map(k=>{const m=KMETA[k];return`<div class="card"><div class="card-title"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} vision</div><div class="int-field int-${k}">${ptList('p:'+k,`What do you want to achieve this ${noun}?`,'Next point…',false)}</div></div>`;}).join('');
+  let h=kinds.map(k=>{const m=KMETA[k];
+    return`<div class="card"><div class="card-title"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} vision</div><div class="int-field int-${k}">${glList(k,0,`What do you want to achieve this ${noun}?`)}</div></div>`;}).join('');
   h+=`<button class="eod-btn${goalReviewOpen?' open':''}" onclick="toggleGoalReview()"><i class="ti ti-checklist"></i> Review <i class="ti ti-chevron-down eod-chev"></i></button>`;
   if(goalReviewOpen){
     h+=kinds.map(k=>{const m=KMETA[k],x=pGet(k);return`<div class="card"><div class="eod-sec k-${k}"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} review</div>${reviewGroup('p:'+k)}<div class="eod-box" style="margin-top:12px"><textarea class="sta" rows="3" maxlength="1500" placeholder="How did this ${noun} go? Wins, lessons, what to carry forward…" oninput="updPeriodReview('${k}',this.value);autoGrow(this)">${esc(x.r)}</textarea></div><button class="rv-done${x.d?' on':''}" onclick="togglePeriodDone('${k}')"><i class="ti ti-circle-check"></i> ${x.d?'Review done':'Mark review done'}</button></div>`;}).join('');
@@ -2471,6 +2512,63 @@ function lockTick(){if(lockOn()&&lockNeeded()&&!document.documentElement.classLi
 if(lockNeeded())showLock();
 setInterval(lockTick,60000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')lockTick();});
+// ── Week / Month / Year intentions: each is written on its own full page ──
+// Intention list used on the Day page and on Week / Month / Year: names outside, an icon opens the full page, new ones are typed in the box at the bottom
+function glList(kind,day,empty){
+  const key=gKey(kind,day),g=pts(key),vis=g.map((p,i)=>i).filter(i=>g[i].t.trim()),d=day?1:0;
+  const rows=vis.map((i,n)=>`<div class="gl-row"><button class="gl-txt" onclick="openGoalEdit('${kind}',${i},${d})">${esc(g[i].t)}</button><button class="gl-open${(g[i].d||'').trim()?' has':''}" onclick="openGoalEdit('${kind}',${i},${d})" aria-label="Open intention" title="${(g[i].d||'').trim()?'Open details':'Add details'}"><i class="ti ti-file-text"></i></button><span class="gl-ord"><button class="pt-mv" ${n===0?'disabled':''} onclick="gMove('${kind}',${i},-1,${d})" aria-label="Move up"><i class="ti ti-chevron-up"></i></button><button class="pt-mv" ${n===vis.length-1?'disabled':''} onclick="gMove('${kind}',${i},1,${d})" aria-label="Move down"><i class="ti ti-chevron-down"></i></button></span></div>`).join('');
+  const full=vis.length>=MAXPTS;
+  return (rows||`<div class="rv-text empty" style="padding:10px 12px">${esc(empty)}</div>`)+(full?'':`<div class="gl-add"><input class="gl-in" id="gla-${key}" maxlength="200" enterkeyhint="done" placeholder="Add intention…" onkeydown="if(event.key==='Enter'){event.preventDefault();glAdd('${kind}',${d},this)}" onblur="glAdd('${kind}',${d},this,1)"><button class="gl-plus" onmousedown="event.preventDefault()" onclick="glAdd('${kind}',${d},this.previousElementSibling)" aria-label="Add"><i class="ti ti-plus"></i></button></div>`);
+}
+function glAdd(kind,day,el,fromBlur){
+  const txt=el.value.trim();if(!txt)return;
+  const key=gKey(kind,day),g=pts(key);
+  if(g.filter(p=>p.t.trim()).length>=MAXPTS){toast(`Up to ${MAXPTS} intentions`);return;}
+  el.value='';g.push({t:txt,s:'',c:''});touchList(key);if(!day)savePeriods();
+  rerenderFor(key);
+  if(!fromBlur)setTimeout(()=>{const n=document.getElementById('gla-'+key);if(n)n.focus();},30);
+}
+let ged=null;
+// day=1: an intention of the day being viewed; otherwise of the week / month / year being viewed
+function gKey(kind,day){return day?kind:'p:'+kind;}
+function openGoalEdit(kind,i,day){
+  day=day?1:0;
+  if(!day&&!goalCursor)goalCursor=curKey(goalType,new Date());
+  const g=pts(gKey(kind,day)),ex=i>=0&&g[i],cur=ex?g[i].t:'',det=ex?(g[i].d||''):'',m=KMETA[kind];
+  if(!ex&&g.filter(p=>p.t.trim()).length>=MAXPTS){toast(`Up to ${MAXPTS} intentions`);return;}
+  ged={kind,day,i:ex?i:-1,orig:cur,origD:det};
+  document.getElementById('ged-title').textContent=day?'Day intention':`${{week:'Week',month:'Month',year:'Year'}[keyType(goalCursor)]} intention`;
+  document.getElementById('ged-sub').textContent=`${m.lbl} · ${day?new Date(dateKey()+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'}):periodLabel(goalCursor).main}`;
+  const t=document.getElementById('ged-text'),d=document.getElementById('ged-detail');
+  t.maxLength=Math.max(200,cur.length);t.value=cur;t.placeholder=`Name it, e.g. "Launch onboarding flow"`;d.value=det;
+  document.getElementById('ged-nav').innerHTML=(ged.i>=0?'<button class="rvp-del" onclick="gedDelete()"><i class="ti ti-trash"></i> Delete</button>':'<button class="btn-secondary" onclick="gedSave(true)">Save &amp; add another</button>')+'<button class="btn-primary" onclick="gedSave(false)"><i class="ti ti-check"></i> Save</button>';
+  document.getElementById('gedit').classList.add('open');
+  setTimeout(()=>{const f=ged&&ged.i>=0?d:t;f.focus();f.setSelectionRange(f.value.length,f.value.length);},60);
+}
+function gedSave(again){
+  if(!ged)return;
+  const key=gKey(ged.kind,ged.day),g=pts(key),txt=document.getElementById('ged-text').value.trim(),det=document.getElementById('ged-detail').value.trim(),k=ged.kind,day=ged.day;let changed=false;
+  if(ged.i<0){if(txt||det){g.push({t:txt||det.split('\n')[0].slice(0,80),s:'',c:'',...(det?{d:det}:{})});changed=true;}}   // details with no name: use the first line as the name
+  else if(g[ged.i]){
+    if(!txt&&!det){g.splice(ged.i,1);changed=true;}
+    else if(txt!==ged.orig||det!==ged.origD){g[ged.i].t=txt||g[ged.i].t;if(det)g[ged.i].d=det;else delete g[ged.i].d;changed=true;}
+  }
+  if(changed){touchList(key);if(!day)savePeriods();}
+  document.getElementById('gedit').classList.remove('open');ged=null;
+  rerenderFor(key);
+  if(again&&changed)setTimeout(()=>openGoalEdit(k,-1,day),50);
+}
+function closeGedit(){if(ged)gedSave(false);}   // closing never loses what was typed
+function gedDelete(){
+  if(!ged||ged.i<0)return;
+  if(!confirm('Delete this intention?'))return;
+  document.getElementById('ged-text').value='';document.getElementById('ged-detail').value='';gedSave(false);
+}
+function gMove(kind,i,d,day){
+  const key=gKey(kind,day),g=pts(key),vis=g.map((p,x)=>x).filter(x=>g[x].t.trim()),pos=vis.indexOf(i),j=vis[pos+d];
+  if(pos<0||j===undefined)return;
+  [g[i],g[j]]=[g[j],g[i]];touchList(key);rerenderFor(key);
+}
 </script>
 </body>
 </html>
