@@ -631,6 +631,110 @@ body.desk #mini-cal,body.desk .hdr{backdrop-filter:blur(18px)}
 .tog-thumb{width:18px;height:18px;top:2px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,.22)}
 .tog-track.on .tog-thumb{left:18px}
 .tog-track.on{box-shadow:0 3px 8px rgba(130,110,255,.35)}
+
+/* ── Design 5: colour & hierarchy ── */
+:root{--work:#ff8a4c;--work-2:#ffb347;--work-bg:#fff3ea;--work-tx:#c2410c;--life:#14b8a6;--life-2:#34d3b0;--life-bg:#e6faf6;--life-tx:#0f766e;--ink:#161a2b;--ink2:#4a5070;--ink3:#8a90ad}
+@media(prefers-color-scheme:dark){:root{--work-bg:#2a1d12;--work-tx:#ffb27f;--life-bg:#0f2a27;--life-tx:#5eead4;--ink:#eef0ff;--ink2:#b4b9d6;--ink3:#7e84a6}}
+body{color:var(--ink)}
+/* hierarchy */
+.card-title{font-size:15px;font-weight:800;letter-spacing:-0.025em;color:var(--ink);margin-bottom:14px}
+.card.k-work .card-title i{background:linear-gradient(135deg,var(--work-2),var(--work));box-shadow:0 6px 14px rgba(255,138,76,.32)}
+.card.k-life .card-title i{background:linear-gradient(135deg,var(--life-2),var(--life));box-shadow:0 6px 14px rgba(20,184,166,.30)}
+.card.k-work{border-top:3px solid var(--work-2)}
+.card.k-life{border-top:3px solid var(--life-2)}
+.card.k-work,.card.k-life{border-top-left-radius:22px;border-top-right-radius:22px}
+.dn-main{color:var(--ink)}.dn-sub,.dn-tag{color:var(--accent-txt);font-weight:600}
+.field-lbl,.time-field label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+/* section headers: pill with coloured dot */
+.period-lbl{background:var(--glass)!important;border:1px solid var(--glass-bd);box-shadow:0 2px 8px rgba(90,100,200,.07);padding:6px 12px 6px 10px!important;border-radius:999px!important;margin:20px 0 10px!important;font-size:10.5px!important;letter-spacing:.1em!important;font-weight:800!important}
+.period-lbl.pre{color:var(--life-tx)!important;--dot:var(--life)}
+.period-lbl.morn{color:var(--work-tx)!important;--dot:var(--work)}
+.period-lbl.eve{color:#7c3aed!important;--dot:#a78bfa}
+.period-lbl.post{color:var(--life-tx)!important;--dot:var(--life)}
+/* slot table */
+.srow{grid-template-columns:66px minmax(0,1fr) 44px}
+.scard{box-shadow:0 12px 34px rgba(90,100,200,.12),0 2px 6px rgba(90,100,200,.05)}
+.srow.hdr{background:transparent;border-bottom:1px solid rgba(107,123,255,.14)}
+.shcell{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.stime{font-weight:800;color:var(--ink);font-size:13px}
+.stime small{font-weight:500;color:var(--ink3)}
+.sta{color:var(--ink);font-weight:500}
+.sta::placeholder{color:rgba(138,144,173,.55)}
+.scheck .circ{border:2px solid rgba(107,123,255,.28);background:var(--bg)}
+.srow.done-row{border-left:3px solid #22c55e;background:linear-gradient(90deg,rgba(34,197,94,.16),rgba(34,197,94,.03))}
+.srow.planned{border-left:3px solid var(--work-2)}
+.use-btn{font-size:9.5px;padding:3px 9px}
+.use-btn.u-nf{opacity:.45;border-style:dashed}
+.use-btn.u-yes{background:linear-gradient(135deg,#e5f9ec,#d2f4df);border-color:#34c77b;color:#0f8a4c}
+.use-btn.u-maybe{background:linear-gradient(135deg,#fff4dc,#ffe9bd);border-color:#f5b02e;color:#a15c00}
+.use-btn.u-no{background:linear-gradient(135deg,#ffe8e8,#ffd6d6);border-color:#f26d6d;color:#c62828}
+.ttag{font-weight:700}
+/* filter chips + selection */
+.sel-help{margin:2px 0 12px;gap:7px}
+.sel-help span{font-weight:700;color:var(--ink3);text-transform:uppercase;font-size:10px;letter-spacing:.1em}
+.sel-help button{padding:6px 13px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-bd);box-shadow:0 2px 8px rgba(90,100,200,.08);color:var(--ink2)}
+.sel-help button.on{box-shadow:0 6px 14px rgba(130,110,255,.35)}
+.srow.sel-on{outline:2px solid var(--accent);background:rgba(107,123,255,.07)}
+/* intentions + vision */
+.int-field{background:var(--glass)}
+.int-work{border-left-width:4px}.int-life{border-left-width:4px}
+.int-lbl{font-size:10px!important;font-weight:800!important;letter-spacing:.12em!important}
+.gl-txt{font-weight:600;color:var(--ink)}
+.sub-tab.on-work,.vb.on-work{background:linear-gradient(135deg,var(--work-2),var(--work))!important;color:#fff!important}
+.sub-tab.on-life,.vb.on-life{background:linear-gradient(135deg,var(--life-2),var(--life))!important;color:#fff!important}
+.sub-tab.on,.sub-tab[class*="on-"]{box-shadow:0 8px 18px rgba(130,110,255,.30);border-color:transparent}
+.sub-tab.on-work{box-shadow:0 8px 18px rgba(255,138,76,.32)}.sub-tab.on-life{box-shadow:0 8px 18px rgba(20,184,166,.3)}
+/* end of day / use summary */
+.use-box{background:linear-gradient(135deg,rgba(107,123,255,.08),rgba(155,109,255,.08));}
+.use-hd{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-txt)}
+.use-chip.u-yes{background:#e5f9ec;color:#0f8a4c;border-color:#34c77b}
+.use-chip.u-maybe{background:#fff4dc;color:#a15c00;border-color:#f5b02e}
+.use-chip.u-no{background:#ffe8e8;color:#c62828;border-color:#f26d6d}
+@media(prefers-color-scheme:dark){.use-chip.u-yes{background:#0f2a1c;color:#6ee7a0}.use-chip.u-maybe{background:#2d2310;color:#fcd34d}.use-chip.u-no{background:#2d1414;color:#fca5a5}.use-btn.u-yes{background:#0f2a1c;color:#6ee7a0}.use-btn.u-maybe{background:#2d2310;color:#fcd34d}.use-btn.u-no{background:#2d1414;color:#fca5a5}}
+/* overdue */
+.od-card{border:1px solid rgba(239,68,68,.25);background:linear-gradient(135deg,rgba(255,236,236,.85),rgba(255,247,240,.85))}
+@media(prefers-color-scheme:dark){.od-card{background:linear-gradient(135deg,rgba(60,22,22,.7),rgba(40,26,20,.7))}}
+.od-row{border-radius:14px}
+.od-ago{font-weight:700}
+/* login */
+.login-card{box-shadow:0 24px 60px rgba(107,123,255,.22)}
+
+/* ── Design 6: grouped toggles, chip rails, section headers ── */
+.tog-bar{margin-bottom:2px;border-radius:10px}
+.tog-bar:first-of-type{border-top-left-radius:18px;border-top-right-radius:18px}
+.tog-bar:not(:has(+.tog-bar)){border-bottom-left-radius:18px;border-bottom-right-radius:18px;margin-bottom:12px}
+.tog-bar:has(+.sel-help){margin-bottom:10px}
+.tog-bar+.tog-bar{margin-top:0}
+.sel-help.flt{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 2px 6px;margin:0 -2px 6px}
+.sel-help.flt::-webkit-scrollbar{display:none}
+.sel-help.flt button,.sel-help.flt span{flex:0 0 auto}
+.sel-help{align-items:center}
+.eod-sec{font-size:12px!important;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:999px;width:fit-content;margin-bottom:12px!important}
+.eod-sec.k-work{background:var(--work-bg);color:var(--work-tx)!important}
+.eod-sec.k-life{background:var(--life-bg);color:var(--life-tx)!important}
+.rv-sub{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.eod-box .sta{background:rgba(107,123,255,.06);border-radius:16px}
+.rv-pt{border-color:rgba(107,123,255,.1)}
+.rv-chip{width:34px;height:34px}
+.od-row{background:rgba(255,255,255,.7);border:1px solid rgba(239,68,68,.15);margin-top:8px;padding:11px 12px}
+.od-kind{font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px}
+.od-kind.k-work{background:var(--work-bg);color:var(--work-tx)}
+.od-kind.k-life{background:var(--life-bg);color:var(--life-tx)}
+.od-txt{font-weight:600;color:var(--ink)}
+.od-ago{color:var(--red);font-size:11px}
+@media(prefers-color-scheme:dark){.od-row{background:rgba(255,255,255,.05)}}
+/* editor page */
+#gedit .rvp-sheet{background:var(--bg)}
+#ged-text{font-size:19px;font-weight:700;letter-spacing:-.025em;line-height:1.35}
+#ged-detail{font-size:15.5px;line-height:1.6;border-radius:18px;background:rgba(107,123,255,.04)}
+#ged-title{font-size:20px;font-weight:800;letter-spacing:-.03em}
+/* settings sheet */
+.sheet h2,.sheet-title{font-weight:800;letter-spacing:-.03em}
+.card .hint,.card .note{line-height:1.5}
+/* tabular numerals & small details */
+.dn-sub{letter-spacing:.01em}
+.hdr-name{font-size:19px}
+.nav-tab .badge,#od-badge{box-shadow:0 3px 8px rgba(239,68,68,.4)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -843,7 +947,7 @@ body.desk #mini-cal,body.desk .hdr{backdrop-filter:blur(18px)}
 </div>
 
 <script>
-const BUILD='v8.5 — 15 Oct 2026';
+const BUILD='v8.9 — 16 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -921,6 +1025,10 @@ function intentHasContent(o){
 function loadIntentLocal(dk){try{return normIntent(JSON.parse(ls('tm_int_'+dk)||'null'));}catch(e){return normIntent({});}}
 let intent = normIntent({});  // {work,life,workStatus,lifeStatus,extra,summary} for the open day
 let eodOpen = false;
+const SLOT_REV_FROM='2026-10-14';   // days before this were never asked for it, so they don't show up as overdue
+const USE_LBL={yes:'Yes',maybe:'Maybe',no:'No'};
+const SLOT_FLT=[['all','All'],['filled','Filled'],['unrated','Not rated'],['yes','Yes'],['maybe','Maybe'],['no','No']];
+let slotFilter='all';
 let selMode=false,selSet=new Set();   // bulk review on the Schedule page
 let intView = 'all';  // All / Work / Life filter inside the Intentions tab
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1035,8 +1143,8 @@ function writeDayNow(){
   // A textarea blur with zero changes must not touch the cloud.
   if(!dirty){
     // Nothing to send. If the cloud already holds exactly this copy, a leftover marker is stale — clear it.
-    const rd=remoteDays[dk];
-    if(rd&&ls('tm_unsynced_'+dk)==='1'&&JSON.stringify(rd.slots||{})===JSON.stringify(snapSlots)&&JSON.stringify(normIntent(rd.intent))===JSON.stringify(normIntent(snapIntent)))ls('tm_unsynced_'+dk,'');
+    const rd=remoteDays[dk]||{};
+    if(ls('tm_unsynced_'+dk)==='1'&&JSON.stringify(rd.slots||{})===JSON.stringify(snapSlots)&&JSON.stringify(normIntent(rd.intent))===JSON.stringify(normIntent(snapIntent)))ls('tm_unsynced_'+dk,'');
     return Promise.resolve();
   }
   // GUARD 3: never overwrite a non-empty cloud day with an empty local day.
@@ -1432,7 +1540,7 @@ function bootApp(){
       // Boot from localStorage immediately so schedule shows before Firebase resolves
       bootApp();
     }
-  }catch(e){}
+  }catch(e){console.error('[boot]',e);}
 })();
 
 // ── App lifecycle ─────────────────────────────────────────
@@ -1600,8 +1708,6 @@ function onDateChange(){
 function tstyle(tp){const c=TCOLORS[tp];if(!c)return'';return`background:${c.bg};color:${c.fg};border-color:${c.bd}`;}
 function gtypes(s){if(Array.isArray(s.types))return s.types;if(s.type)return[s.type];return[];}
 // ── Time-slot review: was each slot used well? (yes / maybe / no) ──
-const SLOT_REV_FROM='2026-10-14';   // days before this were never asked for it, so they don't show up as overdue
-const USE_LBL={yes:'Yes',maybe:'Maybe',no:'No'};
 function slotHasContent(x){return !!(x&&(((x.plan||'').trim())||((x.done||'').trim())||x.skip));}
 function kindSlots(d){   // the work / life time slots of a day, from its own day times
   const dt={...DEF,...((d&&d.dayTimes)||{})};
@@ -1707,11 +1813,18 @@ function autoGrow(ta){
 // ── Bulk review: select many slots, then mark them Yes / Maybe / No in one go ──
 function DONEBAR(){return toggleBar('Show done column','ti-notes',showDone,'toggleDone');}
 function selBox(t){const on=selSet.has(t);return`<button class="sel-cb${on?' on':''}" onclick="toggleSel('${t}')" aria-label="Select slot" aria-pressed="${on}"><i class="ti ${on?'ti-square-check-filled':'ti-square'}"></i></button>`;}
-const SLOT_FLT=[['all','All'],['filled','Filled'],['unrated','Not rated'],['yes','Yes'],['maybe','Maybe'],['no','No']];
-let slotFilter='all';
 function slotMatches(t){const x=slots[t]||{};switch(slotFilter){case 'filled':return slotHasContent(x);case 'unrated':return slotHasContent(x)&&!USE_LBL[x.use];case 'yes':case 'maybe':case 'no':return x.use===slotFilter;default:return true;}}
 function applySlotFilter(){
-  document.querySelectorAll('#sched-container [data-t]').forEach(r=>{r.style.display=slotFilter==='all'||slotMatches(r.dataset.t)?'':'none';});
+  const act=document.activeElement;
+  document.querySelectorAll('#sched-container [data-t]').forEach(r=>{
+    if(act&&r.contains(act)&&slotFilter!=='all')return;   // never hide the row being edited; it settles on blur
+    r.style.display=slotFilter==='all'||slotMatches(r.dataset.t)?'':'none';
+  });
+}
+document.addEventListener('focusout',e=>{if(slotFilter!=='all'&&e.target.closest&&e.target.closest('#sched-container'))setTimeout(applySlotFilter,0);});
+function pruneSel(){   // a slot that is no longer shown (other filter, Work/Life view or day) cannot stay selected
+  if(!selSet.size)return;
+  const vis=new Set(selVisible());[...selSet].forEach(t=>{if(!vis.has(t))selSet.delete(t);});
 }
 function setSlotFilter(k){slotFilter=k;if(selMode)selSet.clear();renderSched();updSelBar();}
 function selVisible(){   // slots shown on the page right now
@@ -1720,11 +1833,11 @@ function selVisible(){   // slots shown on the page right now
 }
 function bulkCtl(){
   let h=toggleBar('Select several slots to review','ti-checklist',selMode,'toggleSelMode');
-  h+=`<div class="sel-help flt"><span>Show:</span>`+SLOT_FLT.map(([k,l])=>`<button class="${slotFilter===k?'on':''}" onclick="setSlotFilter('${k}')">${l}</button>`).join('')+`</div>`;
+  if(selMode)h+=`<div class="sel-help flt"><span>Show:</span>`+SLOT_FLT.map(([k,l])=>`<button class="${slotFilter===k?'on':''}" onclick="setSlotFilter('${k}')">${l}</button>`).join('')+`</div>`;
   if(selMode)h+=`<div class="sel-help"><span>Select:</span><button onclick="selPick('all')">All shown</button><button onclick="selPick('none')">None</button></div>`;
   return h;
 }
-function toggleSelMode(){selMode=!selMode;selSet.clear();renderSched();updSelBar();}
+function toggleSelMode(){selMode=!selMode;selSet.clear();if(!selMode)slotFilter='all';renderSched();updSelBar();}
 function toggleSel(t){
   if(selSet.has(t))selSet.delete(t);else selSet.add(t);
   const row=document.getElementById('sr-'+t.replace(/:/g,''));
@@ -1771,7 +1884,7 @@ function cycleUse(t){
 function refreshUse(t){
   const b=document.getElementById('ub-'+t.replace(/[:-]/g,'')),x=slots[t]||{};
   if(b){const st=useBtnState(x);b.className='use-btn'+st.cls;b.textContent=st.lbl;}
-  updUseSum();
+  updUseSum();applySlotFilter();
 }
 function useChips(c){
   return`<span class="use-chip u-yes"><b>${c.yes}</b> Yes</span><span class="use-chip u-maybe"><b>${c.maybe}</b> Maybe</span><span class="use-chip u-no"><b>${c.no}</b> No</span><span class="use-chip u-nf"><b>${c.nofill}</b> Not filled</span>${c.pending?`<span class="use-chip u-pend"><b>${c.pending}</b> to rate</span>`:''}`;
@@ -1907,7 +2020,7 @@ function renderSched(){
   h=h.replace(DONEBAR(),DONEBAR()+bulkCtl());
   el.innerHTML=h;
   el.querySelectorAll('.sta').forEach(autoGrow);
-  applySlotFilter();
+  pruneSel();applySlotFilter();updSelBar();
   renderDayTop();
   updateOverdueBadge();
   renderMiniCal();
@@ -2009,7 +2122,7 @@ function redrawRow(t){
     const nr=tmp.firstElementChild;rowEl.replaceWith(nr);
     nr.querySelectorAll('.sta').forEach(autoGrow);
   }
-  updUseSum();
+  updUseSum();applySlotFilter();
 }
 
 function skipSlot(t){
@@ -2583,7 +2696,7 @@ function renderGoals(){
   renderOverdue();
   const kinds=goalView==='all'?['work','life']:[goalView],noun=goalType;
   let h=kinds.map(k=>{const m=KMETA[k];
-    return`<div class="card"><div class="card-title"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} vision</div><div class="int-field int-${k}">${glList(k,0,`What do you want to achieve this ${noun}?`)}</div></div>`;}).join('');
+    return`<div class="card k-${k}"><div class="card-title"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} vision</div><div class="int-field int-${k}">${glList(k,0,`What do you want to achieve this ${noun}?`)}</div></div>`;}).join('');
   h+=`<button class="eod-btn${goalReviewOpen?' open':''}" onclick="toggleGoalReview()"><i class="ti ti-checklist"></i> Review <i class="ti ti-chevron-down eod-chev"></i></button>`;
   if(goalReviewOpen){
     h+=kinds.map(k=>{const m=KMETA[k],x=pGet(k);return`<div class="card"><div class="eod-sec k-${k}"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} review</div>${reviewGroup('p:'+k)}<div class="eod-box" style="margin-top:12px"><textarea class="sta" rows="3" maxlength="1500" placeholder="How did this ${noun} go? Wins, lessons, what to carry forward…" oninput="updPeriodReview('${k}',this.value);autoGrow(this)">${esc(x.r)}</textarea></div><button class="rv-done${x.d?' on':''}" onclick="togglePeriodDone('${k}')"><i class="ti ti-circle-check"></i> ${x.d?'Review done':'Mark review done'}</button></div>`;}).join('');
