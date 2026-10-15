@@ -735,6 +735,19 @@ body{color:var(--ink)}
 .dn-sub{letter-spacing:.01em}
 .hdr-name{font-size:19px}
 .nav-tab .badge,#od-badge{box-shadow:0 3px 8px rgba(239,68,68,.4)}
+
+/* recurring slots */
+#rec-card .time-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}#rec-card .time-field select{width:100%}
+.rec-days{display:flex;gap:6px;flex-wrap:wrap}
+.rec-days button,.rec-pre button{border:1px solid var(--glass-bd);background:var(--glass);color:var(--ink2);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 2px 8px rgba(90,100,200,.08)}
+.rec-days button.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 6px 14px rgba(130,110,255,.3)}
+.rec-pre{display:flex;gap:6px;margin-top:8px}.rec-pre button{font-size:11px;padding:5px 10px;font-weight:600}
+.rec-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;background:rgba(107,123,255,.07);margin-bottom:8px}
+.rec-item.off{opacity:.55}
+.rec-main{flex:1;min-width:0}.rec-main b{display:block;font-size:14px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rec-main span{font-size:11.5px;color:var(--ink3)}
+.rec-b{border:none;background:var(--bg);width:34px;height:34px;border-radius:11px;color:var(--accent-txt);cursor:pointer;box-shadow:0 2px 8px rgba(90,100,200,.1);font-size:15px}
+.rec-b.del{color:var(--red)}
+.srow[data-rec] .stime::after{content:'\21BB';font-size:11px;font-weight:800;color:var(--accent-txt);margin-top:2px;opacity:.8}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -931,6 +944,18 @@ body{color:var(--ink)}
         <div class="slp-sub" style="padding:0 0 10px">Your perfect-day template, used as a guide for every day.</div>
         <button class="btn-primary" onclick="openIdeal()"><i class="ti ti-edit"></i> Edit ideal day</button>
       </div>
+      <div class="card" id="rec-card">
+        <div class="card-title"><i class="ti ti-repeat"></i> Recurring slots</div>
+        <div class="slp-sub" style="padding:0 0 10px">Something that happens on the same days every week, such as a stand-up or the gym. It is filled into those time slots automatically from today onward. You can still change or clear it on any day.</div>
+        <div id="rec-list"></div>
+        <div class="field-lbl" style="margin-top:10px">What</div>
+        <input class="field-input" id="rec-t" maxlength="120" placeholder="e.g. Team stand-up">
+        <div class="time-row" style="margin-top:10px"><div class="time-field"><label>From</label><select class="field-input" id="rec-s"></select></div><div class="time-field"><label>To</label><select class="field-input" id="rec-e"></select></div></div>
+        <div class="field-lbl" style="margin-top:12px">Repeat on</div>
+        <div class="rec-days" id="rec-days"></div>
+        <div class="rec-pre"><button onclick="recPreset('all')">Every day</button><button onclick="recPreset('wk')">Weekdays</button><button onclick="recPreset('we')">Weekends</button></div>
+        <button class="btn-primary" style="margin-top:12px" onclick="recAdd()"><i class="ti ti-plus"></i> Add recurring slot</button>
+      </div>
       <div class="card" id="view-card">
         <div class="card-title"><i class="ti ti-device-desktop"></i> Display</div>
         <div class="slp-sub" style="padding:0 0 10px">Desktop view is a wide layout for large screens: a sidebar with a month calendar, your schedule in the middle and the day\u2019s intentions on the right. Used automatically on wide windows; remembered on this device only.</div>
@@ -947,7 +972,7 @@ body{color:var(--ink)}
 </div>
 
 <script>
-const BUILD='v8.9 — 16 Oct 2026';
+const BUILD='v9.0 — 16 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -1025,6 +1050,7 @@ function intentHasContent(o){
 function loadIntentLocal(dk){try{return normIntent(JSON.parse(ls('tm_int_'+dk)||'null'));}catch(e){return normIntent({});}}
 let intent = normIntent({});  // {work,life,workStatus,lifeStatus,extra,summary} for the open day
 let eodOpen = false;
+let recRules=[],dirtyRec=false,fbRecT=null,recDays=new Set([1,2,3,4,5]);   // recurring slots
 const SLOT_REV_FROM='2026-10-14';   // days before this were never asked for it, so they don't show up as overdue
 const USE_LBL={yes:'Yes',maybe:'Maybe',no:'No'};
 const SLOT_FLT=[['all','All'],['filled','Filled'],['unrated','Not rated'],['yes','Yes'],['maybe','Maybe'],['no','No']];
@@ -1307,6 +1333,12 @@ function applyRemote(d){
       if(document.getElementById('ideal-sheet').classList.contains('open'))renderIdeal();
     }
   }
+  if(!dirtyRec&&!fbRecT&&Array.isArray(d.recurring)){
+    const inR=d.recurring.map(normRec).filter(Boolean);
+    if(JSON.stringify(inR)===JSON.stringify(recRules)){ls('tm_rec_unsynced','');}
+    else if(ls('tm_rec_unsynced')==='1'){dirtyRec=true;syncRec();}   // an earlier session's edit never reached the cloud — push it
+    else{recRules=inR;ls('tm_rec',JSON.stringify(recRules));if(document.getElementById('settings').classList.contains('open'))renderRecBox();}
+  }
   const dk=dateKey();
   const dayData=dayFromDoc(d,dk);
   if(dayData){
@@ -1334,6 +1366,7 @@ function applyRemote(d){
     ls(`tm_${dk}`,JSON.stringify(slots));ls('tm_int_'+dk,JSON.stringify(intent));
     renderSched();
   }
+  if(applyRecurring())renderSched();
 }
 
 function daysCol(){return db.collection('time-mgmt').doc(uid).collection('days');}
@@ -1511,6 +1544,7 @@ function bootApp(){
   alreadyBooted=true;
   try{const d=JSON.parse(ls('tm_times')||'{}');if(d.dayTimes)dayTimes={...DEF,...d.dayTimes};}catch(e){}
   try{const d=JSON.parse(ls('tm_ideal')||'{}');if(d&&typeof d==='object')idealSlots=d;}catch(e){}
+  loadRec();
   try{const d=JSON.parse(ls('tm_ideal_times')||'{}');if(d&&typeof d==='object'&&d.wake)idealTimes={...DEF,...d};}catch(e){}
   const now=new Date();
   const today=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
@@ -1914,7 +1948,7 @@ function slotRow(t,isWork){
     typeHtml=`<div class="type-row"><div class="type-pop">${popOpts}</div>${tags}${addBtn}</div>`;
   }
   const doneCell=showDone?`<div class="scell${!isWork?' last':''}"><div style="display:flex;flex-direction:column;width:100%">${typeHtml}<textarea class="sta" rows="1" maxlength="500" oninput="updSlot('${t}','done',this.value);autoGrow(this)" onblur="save()">${esc(s.done)}</textarea></div></div>`:'';
-  return`<div class="${cls}${showDone?' with-done':''}${selMode&&selSet.has(t)?' sel-on':''}" id="sr-${t.replace(/:/g,'')}" data-t="${t}">
+  return`<div class="${cls}${showDone?' with-done':''}${selMode&&selSet.has(t)?' sel-on':''}" id="sr-${t.replace(/:/g,'')}" data-t="${t}"${s.rec?' data-rec="1"':''}>
     <div class="stime">${st}<small>${en}</small>${anch}${selMode?selBox(t)+useBtn(t,s,1):useBtn(t,s)}</div>
     <div class="scell"><textarea class="sta" rows="1" maxlength="500" oninput="updSlot('${t}','plan',this.value);autoGrow(this)" onblur="save()">${esc(s.plan)}</textarea></div>
     ${doneCell}
@@ -1975,6 +2009,7 @@ function toggleBar(label,icon,state,fn){
 
 function renderSched(){
   const el=document.getElementById('sched-container');if(!el)return;
+  applyRecurring();
   buildSlots();
   let h='';
   if(schedView==='all'){
@@ -2239,6 +2274,7 @@ function buildIdealRows(){
   const out=[],t={...DEF,...(idealTimes||{})};
   [['Wake','wake'],['Work start','workReach'],['Work end','workLeave'],['Sleep','sleep']].forEach(([l,k])=>{if(validTime(t[k]))out.push(['Ideal day times',l,t[k]]);});
   Object.keys(idealSlots||{}).sort().forEach(k=>{const p=((idealSlots[k]||{}).plan||'').trim();if(p)out.push(['Ideal day slot',k,p]);});
+  (recRules||[]).forEach(r=>out.push(['Recurring slot',`${r.s}-${r.e} · ${recDaysText(r.d)}${r.p?' · paused':''}`,r.t]));
   return out;
 }
 
@@ -2436,7 +2472,85 @@ async function upgradeCloud(auto){
 // Cloud storage upgrade now runs by itself, once per app load, after the cloud data has loaded. It only COPIES days and verifies every copy before switching; any problem leaves the data as it was.
 function autoUpgrade(){if(autoTried||!uid||!hydrated||layout2||migBusy||isTyping())return;autoTried=true;upgradeCloud(true);}
 setInterval(autoUpgrade,6000);
-function openSettings(){renderLockBox();updateCloudSize();renderLayoutBox();updateViewUi();bkStatus();document.getElementById('settings').classList.add('open');}
+
+// ── Recurring slots ──────────────────────────────────────
+const REC_DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],REC_ORDER=[1,2,3,4,5,6,0];
+function normRec(r){
+  if(!r||typeof r!=='object')return null;
+  const t=String(r.t||'').trim().slice(0,120),ok=v=>/^([01]\d|2[0-3]):[0-5]\d$/.test(v||'');
+  const d=[...new Set((Array.isArray(r.d)?r.d:[]).map(Number).filter(n=>n>=0&&n<=6))].sort();
+  if(!t||!ok(r.s)||!(ok(r.e)||r.e==='24:00')||!d.length)return null;
+  return{id:String(r.id||('r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))),t,s:r.s,e:r.e,d,f:/^\d{4}-\d{2}-\d{2}$/.test(r.f||'')?r.f:ymd(new Date()),p:!!r.p};
+}
+function loadRec(){try{const a=JSON.parse(ls('tm_rec')||'[]');recRules=(Array.isArray(a)?a:[]).map(normRec).filter(Boolean);}catch(e){recRules=[];}}
+function saveRec(){ls('tm_rec',JSON.stringify(recRules));ls('tm_rec_unsynced','1');dirtyRec=true;syncRec();}
+function syncRec(){if(!uid||!dirtyRec)return;clearTimeout(fbRecT);fbRecT=setTimeout(writeRecNow,1500);}
+function writeRecNow(){
+  fbRecT=null;
+  if(!uid||!dirtyRec)return Promise.resolve();
+  if(!hydrated){fbRecT=setTimeout(writeRecNow,2000);return Promise.resolve();}
+  return db.collection('time-mgmt').doc(uid).set({recurring:recRules,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+    .then(()=>{dirtyRec=false;ls('tm_rec_unsynced','');}).catch(()=>{/* stays dirty; retried on the next edit or app start */});
+}
+function recKeys(r){
+  const [sh,sm]=r.s.split(':').map(Number),[eh,em]=r.e.split(':').map(Number),a=sh*60+sm;let b=eh*60+em;if(b<=a)b+=1440;
+  const out=[],f=m=>{m=((m%1440)+1440)%1440;return pad(Math.floor(m/60))+':'+pad(m%60);};
+  for(let m=a;m<b;m+=30)out.push(f(m)+'-'+f(m+30));
+  return out;
+}
+function applyRecurring(){   // fill today's / a future day's empty slots from the rules; returns true if anything changed
+  if(!recRules.length||!loadedDk)return false;
+  const dk=loadedDk;if(dk<ymd(new Date()))return false;
+  const [y,m,d]=dk.split('-').map(Number),wd=new Date(y,m-1,d).getDay();
+  const ks=kindSlots({dayTimes,isHoliday}),grid=new Set([...ks.work,...ks.life]);
+  let ch=false;
+  recRules.forEach(r=>{
+    if(r.p||dk<r.f||!r.d.includes(wd))return;
+    recKeys(r).forEach(k=>{
+      if(!grid.has(k))return;
+      const x=slots[k];
+      if(x&&(x.rec||slotHasContent(x)))return;   // already has something, or it was filled before and then cleared on purpose
+      slots[k]={...(x||{}),plan:r.t,done:(x&&x.done)||'',types:(x&&Array.isArray(x.types))?x.types:[],rec:r.id};ch=true;
+    });
+  });
+  if(ch&&hydrated&&(!layout2||daysHydrated)){dirty=true;save();}
+  return ch;
+}
+function recDaysText(d){return d.length===7?'Every day':(d.join()==='1,2,3,4,5'?'Weekdays':(d.join()==='0,6'?'Weekends':REC_ORDER.filter(n=>d.includes(n)).map(n=>REC_DN[n]).join(' ')));}
+function recTimeOpts(sel,withEnd){
+  const el=document.getElementById(sel);if(!el||el.options.length)return;
+  let h='';for(let m=0;m<=(withEnd?1440:1410);m+=30){const v=m===1440?'24:00':pad(Math.floor(m/60))+':'+pad(m%60);h+=`<option value="${v}">${fmt12(m===1440?'00:00':v)}</option>`;}
+  el.innerHTML=h;
+}
+function renderRecBox(){
+  recTimeOpts('rec-s',false);recTimeOpts('rec-e',true);
+  const s=document.getElementById('rec-s'),e=document.getElementById('rec-e');
+  if(s&&!s.dataset.init){s.value='10:00';e.value='10:30';s.dataset.init='1';}
+  const dd=document.getElementById('rec-days');
+  if(dd)dd.innerHTML=REC_ORDER.map(n=>`<button class="${recDays.has(n)?'on':''}" onclick="recDay(${n})">${REC_DN[n]}</button>`).join('');
+  const el=document.getElementById('rec-list');if(!el)return;
+  el.innerHTML=recRules.length?recRules.map(r=>`<div class="rec-item${r.p?' off':''}"><div class="rec-main"><b>${esc(r.t)}</b><span>${fmt12(r.s)} – ${fmt12(r.e==='24:00'?'00:00':r.e)} · ${recDaysText(r.d)}${r.p?' · paused':''}</span></div><button class="rec-b" onclick="recToggle('${r.id}')" title="${r.p?'Resume':'Pause'}"><i class="ti ${r.p?'ti-player-play':'ti-player-pause'}"></i></button><button class="rec-b del" onclick="recDel('${r.id}')" title="Delete"><i class="ti ti-trash"></i></button></div>`).join(''):'<div class="slp-sub" style="padding:0 0 4px">None yet.</div>';
+}
+function recDay(n){if(recDays.has(n))recDays.delete(n);else recDays.add(n);renderRecBox();}
+function recPreset(k){recDays=new Set(k==='all'?[0,1,2,3,4,5,6]:k==='wk'?[1,2,3,4,5]:[0,6]);renderRecBox();}
+function recAdd(){
+  const t=document.getElementById('rec-t'),s=document.getElementById('rec-s').value,e=document.getElementById('rec-e').value;
+  const r=normRec({t:t.value,s,e,d:[...recDays],f:ymd(new Date())});
+  if(!r){toast(!t.value.trim()?'Type what it is':(recDays.size?'Pick valid times':'Pick at least one day'));return;}
+  recRules.push(r);saveRec();t.value='';renderRecBox();
+  if(applyRecurring())renderSched();
+  toast('Recurring slot added');
+}
+function recToggle(id){const r=recRules.find(x=>x.id===id);if(!r)return;r.p=!r.p;saveRec();renderRecBox();if(!r.p&&applyRecurring())renderSched();}
+function recDel(id){
+  const r=recRules.find(x=>x.id===id);if(!r)return;
+  if(!confirm(`Delete "${r.t}"? Days that already have it keep their text, except the day open now.`))return;
+  recRules=recRules.filter(x=>x.id!==id);saveRec();
+  if(loadedDk&&loadedDk>=ymd(new Date())){let ch=false;Object.keys(slots).forEach(k=>{const x=slots[k];if(x&&x.rec===id){if((x.plan||'')===r.t&&!(x.done||'').trim())x.plan='';delete x.rec;ch=true;}});if(ch){dirty=true;save();renderSched();}}
+  renderRecBox();
+}
+
+function openSettings(){renderRecBox();renderLockBox();updateCloudSize();renderLayoutBox();updateViewUi();bkStatus();document.getElementById('settings').classList.add('open');}
 function closeSettings(){const el=document.getElementById('settings');if(el)el.classList.remove('open');}
 
 // ── Priority intentions + end-of-day review ───────────────
@@ -2731,7 +2845,7 @@ function backupSnapshot(){
     days[dk]=normDayObj(dk,d);
   });
   const per={};Object.keys(periods).forEach(k=>{if(pHas(periods[k])||periods[k].work.d||periods[k].life.d)per[k]=JSON.parse(JSON.stringify(periods[k]));});
-  return{days,periods:per,ideal:{slots:JSON.parse(JSON.stringify(idealSlots||{})),times:{...idealTimes}}};
+  return{days,periods:per,ideal:{slots:JSON.parse(JSON.stringify(idealSlots||{})),times:{...idealTimes}},recurring:JSON.parse(JSON.stringify(recRules))};
 }
 function backupRows(snap){
   const rows=[['Type','Key','Part','Data']];
@@ -2849,6 +2963,7 @@ async function restoreBackup(tab){
     if(doAdd&&idealEmpty&&b.ideal&&b.ideal.slots&&Object.keys(b.ideal.slots).length){
       idealSlots=b.ideal.slots;idealTimes={...DEF,...(b.ideal.times||{})};buildIdealSlots();saveIdeal();syncIdeal();
     }
+    if(doAdd&&!recRules.length&&Array.isArray(b.recurring)&&b.recurring.length){recRules=b.recurring.map(normRec).filter(Boolean);saveRec();}
     onDateChange();
     bkMsg(`Restored ${dayKeys.length} day${dayKeys.length===1?'':'s'}${perKeys.length?` and ${perKeys.length} vision period${perKeys.length===1?'':'s'}`:''}.`);
   }catch(e){bkMsg('Restore stopped: '+(e&&e.message||'unknown error')+'. Nothing was half-changed in a way that loses data; check your days and try again.','err');}
