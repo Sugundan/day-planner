@@ -842,7 +842,7 @@ body.desk #mini-cal,body.desk .hdr{backdrop-filter:blur(18px)}
 </div>
 
 <script>
-const BUILD='v8.3 — 14 Oct 2026';
+const BUILD='v8.4 — 15 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -2499,7 +2499,8 @@ function overdueItems(){
       if(k==='work'&&d.isHoliday)return;
       const intOver=!!d.intent&&it[k].some(p=>p.t.trim())&&!it[k+'Reviewed'];
       const slotOver=dk>=SLOT_REV_FROM&&useCounts(d,k).pending>0;
-      if(intOver||slotOver)out.push({type:'day',kind:k,key:dk,end:dk,slots:slotOver});
+      if(intOver)out.push({type:'day',kind:k,key:dk,end:dk,slots:false});          // intentions and time slots are separate reviews: one row each
+      if(slotOver)out.push({type:'day',kind:k,key:dk,end:dk,slots:true});
     });
   });
   Object.keys(periods).forEach(key=>{
