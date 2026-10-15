@@ -413,6 +413,7 @@ body.desk #ideal-container{display:block}
 .sel-btns .su-yes{border-color:var(--green);color:var(--green)}.sel-btns .su-maybe{border-color:var(--amber);color:var(--amber)}.sel-btns .su-no{border-color:var(--red);color:var(--red)}
 .sel-btns .su-done{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .sel-help{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:-4px 2px 10px;font-size:12px;color:var(--text3)}
+.sel-help button.on{background:var(--grad);color:#fff;border-color:transparent}
 .sel-help button{border:1px solid var(--border2);background:var(--bg);color:var(--text2);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
 .sel-cb{margin-top:3px;align-self:flex-start;border:none;background:transparent;color:var(--text3);font-size:22px;padding:0;cursor:pointer;display:flex}
 .sel-cb.on{color:var(--accent)}
@@ -842,7 +843,7 @@ body.desk #mini-cal,body.desk .hdr{backdrop-filter:blur(18px)}
 </div>
 
 <script>
-const BUILD='v8.4 — 15 Oct 2026';
+const BUILD='v8.5 — 15 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -1706,13 +1707,21 @@ function autoGrow(ta){
 // ── Bulk review: select many slots, then mark them Yes / Maybe / No in one go ──
 function DONEBAR(){return toggleBar('Show done column','ti-notes',showDone,'toggleDone');}
 function selBox(t){const on=selSet.has(t);return`<button class="sel-cb${on?' on':''}" onclick="toggleSel('${t}')" aria-label="Select slot" aria-pressed="${on}"><i class="ti ${on?'ti-square-check-filled':'ti-square'}"></i></button>`;}
+const SLOT_FLT=[['all','All'],['filled','Filled'],['unrated','Not rated'],['yes','Yes'],['maybe','Maybe'],['no','No']];
+let slotFilter='all';
+function slotMatches(t){const x=slots[t]||{};switch(slotFilter){case 'filled':return slotHasContent(x);case 'unrated':return slotHasContent(x)&&!USE_LBL[x.use];case 'yes':case 'maybe':case 'no':return x.use===slotFilter;default:return true;}}
+function applySlotFilter(){
+  document.querySelectorAll('#sched-container [data-t]').forEach(r=>{r.style.display=slotFilter==='all'||slotMatches(r.dataset.t)?'':'none';});
+}
+function setSlotFilter(k){slotFilter=k;if(selMode)selSet.clear();renderSched();updSelBar();}
 function selVisible(){   // slots shown on the page right now
   const d={dayTimes,isHoliday},ks=kindSlots(d),want=schedView==='work'?['work']:schedView==='life'?['life']:['work','life'];
-  return want.flatMap(k=>ks[k]);
+  return want.flatMap(k=>ks[k]).filter(slotMatches);
 }
 function bulkCtl(){
   let h=toggleBar('Select several slots to review','ti-checklist',selMode,'toggleSelMode');
-  if(selMode)h+=`<div class="sel-help"><span>Select:</span><button onclick="selPick('all')">All</button><button onclick="selPick('filled')">Filled</button><button onclick="selPick('unrated')">Not yet rated</button><button onclick="selPick('none')">None</button></div>`;
+  h+=`<div class="sel-help flt"><span>Show:</span>`+SLOT_FLT.map(([k,l])=>`<button class="${slotFilter===k?'on':''}" onclick="setSlotFilter('${k}')">${l}</button>`).join('')+`</div>`;
+  if(selMode)h+=`<div class="sel-help"><span>Select:</span><button onclick="selPick('all')">All shown</button><button onclick="selPick('none')">None</button></div>`;
   return h;
 }
 function toggleSelMode(){selMode=!selMode;selSet.clear();renderSched();updSelBar();}
@@ -1724,7 +1733,7 @@ function toggleSel(t){
 }
 function selPick(how){
   selSet.clear();
-  selVisible().forEach(t=>{const x=slots[t]||{};if(how==='all'||(how==='filled'&&slotHasContent(x))||(how==='unrated'&&slotHasContent(x)&&!USE_LBL[x.use]))selSet.add(t);});
+  if(how!=='none')selVisible().forEach(t=>{const x=slots[t]||{};if(how==='all'||(how==='filled'&&slotHasContent(x))||(how==='unrated'&&slotHasContent(x)&&!USE_LBL[x.use]))selSet.add(t);});
   renderSched();updSelBar();
 }
 function updSelBar(){
@@ -1746,8 +1755,9 @@ function bulkMark(v){
   toast(v?`${n} slot${n>1?'s':''} marked ${USE_LBL[v]}`:`Cleared ${n} slot${n>1?'s':''}`);
 }
 function useBtnState(s){const u=s.use;return USE_LBL[u]?{cls:' u-'+u,lbl:USE_LBL[u]}:slotHasContent(s)?{cls:'',lbl:'Rate'}:{cls:' u-nf',lbl:'Blank'};}
-function useBtn(t,s){
+function useBtn(t,s,ro){
   const st=useBtnState(s);
+  if(ro)return`<span class="use-btn${st.cls}" id="ub-${t.replace(/[:-]/g,'')}" style="pointer-events:none">${st.lbl}</span>`;
   return`<button class="use-btn${st.cls}" id="ub-${t.replace(/[:-]/g,'')}" title="Was this slot used well? Tap to change" onclick="cycleUse('${t}')">${st.lbl}</button>`;
 }
 function cycleUse(t){
@@ -1756,7 +1766,7 @@ function cycleUse(t){
   if(!Array.isArray(x.types))x.types=gtypes(x);
   const order=['','yes','maybe','no'],n=order[(order.indexOf(x.use||'')+1)%4];
   if(n)x.use=n;else delete x.use;
-  dirty=true;save();refreshUse(t);
+  dirty=true;save();refreshUse(t);if(slotFilter!=='all')applySlotFilter();
 }
 function refreshUse(t){
   const b=document.getElementById('ub-'+t.replace(/[:-]/g,'')),x=slots[t]||{};
@@ -1791,8 +1801,8 @@ function slotRow(t,isWork){
     typeHtml=`<div class="type-row"><div class="type-pop">${popOpts}</div>${tags}${addBtn}</div>`;
   }
   const doneCell=showDone?`<div class="scell${!isWork?' last':''}"><div style="display:flex;flex-direction:column;width:100%">${typeHtml}<textarea class="sta" rows="1" maxlength="500" oninput="updSlot('${t}','done',this.value);autoGrow(this)" onblur="save()">${esc(s.done)}</textarea></div></div>`:'';
-  return`<div class="${cls}${showDone?' with-done':''}${selMode&&selSet.has(t)?' sel-on':''}" id="sr-${t.replace(/:/g,'')}">
-    <div class="stime">${st}<small>${en}</small>${anch}${selMode?selBox(t):useBtn(t,s)}</div>
+  return`<div class="${cls}${showDone?' with-done':''}${selMode&&selSet.has(t)?' sel-on':''}" id="sr-${t.replace(/:/g,'')}" data-t="${t}">
+    <div class="stime">${st}<small>${en}</small>${anch}${selMode?selBox(t)+useBtn(t,s,1):useBtn(t,s)}</div>
     <div class="scell"><textarea class="sta" rows="1" maxlength="500" oninput="updSlot('${t}','plan',this.value);autoGrow(this)" onblur="save()">${esc(s.plan)}</textarea></div>
     ${doneCell}
     <div class="sactions"><button class="scheck" onclick="tickSlot('${t}')"><span class="circ"><i class="ti ${skipped?'ti-minus':'ti-check'}"></i></span></button><button class="sskip" title="Skip — count as done, no details" onclick="skipSlot('${t}')"><i class="ti ti-ban"></i></button></div>
@@ -1897,6 +1907,7 @@ function renderSched(){
   h=h.replace(DONEBAR(),DONEBAR()+bulkCtl());
   el.innerHTML=h;
   el.querySelectorAll('.sta').forEach(autoGrow);
+  applySlotFilter();
   renderDayTop();
   updateOverdueBadge();
   renderMiniCal();
