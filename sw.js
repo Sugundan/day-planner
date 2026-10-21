@@ -1,5 +1,5 @@
 /* Planner — Service Worker (offline support) */
-const CACHE = 'day-planner-v73';
+const CACHE = 'day-planner-v78';
 const ASSETS = [
   './',
   './index.html',
@@ -30,6 +30,18 @@ self.addEventListener('activate', (e) => {
 // Fetch: cache-first, fall back to network (and cache new requests like icon fonts)
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return; // let POSTs (Google Sheets save) pass through
+  // Pages, the manifest and icons: network first, so a new version shows on the very next open
+  // (cache is only the offline fallback). Everything else (fonts etc.): cache first.
+  const u0 = new URL(e.request.url);
+  if (u0.origin === self.location.origin && (e.request.mode === 'navigate' || /\.(html|json|png|js)$/.test(u0.pathname) || u0.pathname.endsWith('/'))) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-cache' }).then((resp) => {
+        if (resp.ok) { const copy = resp.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); }
+        return resp;
+      }).catch(() => caches.match(e.request).then((m) => m || caches.match('./index.html')))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
