@@ -1,13 +1,13 @@
 /* Planner — Service Worker (offline support) */
-const CACHE = 'day-planner-v72';
+const CACHE = 'day-planner-v73';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
-  './apple-touch-icon.png',
+  './icon2-192.png',
+  './icon2-512.png',
+  './icon2-maskable-512.png',
+  './apple2-touch-icon.png',
   'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.2.0/dist/tabler-icons.min.css'
 ];
 
