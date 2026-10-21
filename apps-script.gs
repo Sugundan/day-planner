@@ -58,6 +58,21 @@ function doPost(e) {
     // First row from the app is the header — only write it once
     var header = rows[0];
     var dataRows = rows.slice(1);
+    // If the columns changed since this tab was last written (new app version), keep the old
+    // tab as "<name> (old columns)" and start a fresh one, so rows never sit under wrong headers.
+    if (sheet.getLastRow() > 0) {
+      var oldHdr = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0]
+        .map(String).filter(function (x, i, arr) { return x !== '' || i < header.length; });
+      var same = oldHdr.length >= header.length;
+      for (var i = 0; same && i < header.length; i++) if (String(oldHdr[i]) !== String(header[i])) same = false;
+      if (!same) {
+        var oldName = tabName + ' (old columns)';
+        var oldCopy = ss.getSheetByName(oldName);
+        if (oldCopy) ss.deleteSheet(oldCopy);
+        sheet.copyTo(ss).setName(oldName);
+        sheet.clear();
+      }
+    }
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(header);
       sheet.getRange(1, 1, 1, header.length).setFontWeight('bold');
