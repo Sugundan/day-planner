@@ -748,6 +748,52 @@ body{color:var(--ink)}
 .rec-b{border:none;background:var(--bg);width:34px;height:34px;border-radius:11px;color:var(--accent-txt);cursor:pointer;box-shadow:0 2px 8px rgba(90,100,200,.1);font-size:15px}
 .rec-b.del{color:var(--red)}
 .srow[data-rec] .stime::after{content:'\21BB';font-size:11px;font-weight:800;color:var(--accent-txt);margin-top:2px;opacity:.8}
+
+/* carry forward */
+.since{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:var(--work-bg);color:var(--work-tx);font-size:10px;font-weight:700;letter-spacing:.02em;white-space:nowrap;vertical-align:1px}
+.rv-chip.rv-carry{color:var(--accent-txt)}
+.rv-chip.rv-carry:active{background:var(--accent-bg)}
+
+/* time review card */
+.use-box{padding:16px 18px;border-radius:22px}
+.use-big{display:flex;align-items:baseline;gap:6px;margin:6px 0 8px}
+.use-big b{font-size:34px;font-weight:800;letter-spacing:-.04em;color:var(--green)}
+.use-big span{font-size:20px;font-weight:700;color:var(--ink3)}
+.use-big small{font-size:12px;font-weight:700;color:var(--ink3);margin-left:4px;text-transform:uppercase;letter-spacing:.08em}
+.use-bar{height:8px;border-radius:99px;background:rgba(107,123,255,.12);overflow:hidden;margin-bottom:10px}
+.use-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#34d3b0,#22c55e)}
+.use-sub{font-size:12.5px;color:var(--ink2);margin-bottom:8px}.use-sub b{color:var(--ink)}
+.use-btns{display:flex;flex-wrap:wrap;gap:8px}
+.use-btns .rv-done{margin-top:0;flex:1 1 auto;justify-content:center}
+.use-sched{margin:6px 0 14px;background:var(--glass);border:1px solid var(--glass-bd);box-shadow:var(--lift)}
+#sel-bar .su-yes{border-color:#34c77b;color:#0f8a4c}
+
+/* summary */
+.sum-types{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px}
+.sum-types::-webkit-scrollbar{display:none}
+.sum-types button{flex:0 0 auto;border:1px solid var(--glass-bd);background:var(--glass);color:var(--ink2);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 2px 8px rgba(90,100,200,.08)}
+.sum-types button.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 6px 14px rgba(130,110,255,.3)}
+.sum-grp{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin:18px 2px 8px}
+.sum-grp small{font-weight:700;color:var(--accent-txt);margin-left:4px}
+.sum-card{background:var(--glass);border:1px solid var(--glass-bd);border-radius:20px;box-shadow:var(--lift);margin-bottom:10px;overflow:hidden;padding-bottom:6px}
+.sum-hd{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:none;background:rgba(107,123,255,.06);padding:12px 14px;font-family:inherit;color:var(--ink);cursor:pointer}
+.sum-hd>div{flex:1;min-width:0}.sum-hd b{display:block;font-size:14px;font-weight:800;letter-spacing:-.02em}.sum-hd small{font-size:11px;color:var(--ink3)}
+.sum-stat{font-size:10.5px;font-weight:700;color:var(--ink3);text-align:right}
+.sum-k{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:10px 14px 2px}
+.sum-k.k-work{color:var(--work-tx)}.sum-k.k-life{color:var(--life-tx)}
+.sum-it{display:flex;align-items:flex-start;gap:9px;padding:5px 14px;font-size:13.5px;font-weight:500;color:var(--ink)}
+.sum-it i{margin-top:2px;font-size:15px;color:var(--ink3)}
+.sum-it.st-done i{color:#16a34a}.sum-it.st-done .sum-t{color:var(--ink3);text-decoration:line-through}
+.sum-it.st-partial i{color:#d97706}.sum-it.st-missed i{color:#dc2626}
+.sum-more{display:block;width:100%;border:1px dashed var(--border2);background:transparent;border-radius:14px;padding:10px;color:var(--accent-txt);font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px}
+
+/* compact time-slot line inside End of day */
+.use-box.use-sm{padding:9px 12px;border-radius:14px;margin:6px 0 8px}
+.use-sm .use-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
+.use-sm .use-num{font-size:13px;font-weight:700;color:var(--ink3)}.use-sm .use-num b{font-size:18px;font-weight:800;color:var(--green)}
+.use-sm .use-bar{height:5px;margin-bottom:8px}
+.use-sm .use-btns{gap:6px}.use-sm .rv-done{padding:6px 10px;font-size:11.5px;border-radius:10px}
+.sum-cm{font-size:12px;color:var(--ink2);font-style:italic;margin:1px 0 0;display:block;font-weight:500}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -820,6 +866,7 @@ body{color:var(--ink)}
       <button class="vb" id="vb-week" onclick="visionGo('week')">Week</button>
       <button class="vb" id="vb-month" onclick="visionGo('month')">Month</button>
       <button class="vb" id="vb-year" onclick="visionGo('year')">Year</button>
+      <button class="vb" id="vb-summary" onclick="visionGo('summary')"><i class="ti ti-list-details"></i> Summary</button>
     </div>
   </div>
 
@@ -844,6 +891,17 @@ body{color:var(--ink)}
       <button class="sub-tab" id="iv-life" onclick="setIntView('life')"><i class="ti ti-home"></i> Life</button>
     </div>
     <div id="day-top"></div>
+  </div>
+
+  <!-- SUMMARY (every intention, newest first) -->
+  <div class="section" id="sec-summary">
+    <div class="sub-tabs">
+      <button class="sub-tab on-all" id="sv-all" onclick="setSumView('all')"><i class="ti ti-layout-list"></i> All</button>
+      <button class="sub-tab" id="sv-work" onclick="setSumView('work')"><i class="ti ti-briefcase"></i> Work</button>
+      <button class="sub-tab" id="sv-life" onclick="setSumView('life')"><i class="ti ti-home"></i> Life</button>
+    </div>
+    <div class="sum-types" id="sum-types"></div>
+    <div id="summary-body"></div>
   </div>
 
   <!-- VISION (week / month / year) -->
@@ -884,7 +942,7 @@ body{color:var(--ink)}
       <div id="picker-body"></div>
     </div>
   </div>
-  <div id="sel-bar"><span id="sel-n">Tap slots to select</span><div class="sel-btns"><button class="sel-act su-yes" onclick="bulkMark('yes')">Yes</button><button class="sel-act su-maybe" onclick="bulkMark('maybe')">Maybe</button><button class="sel-act su-no" onclick="bulkMark('no')">No</button><button class="sel-act su-clr" onclick="bulkMark('')">Clear</button><button class="su-done" onclick="toggleSelMode()">Done</button></div></div>
+  <div id="sel-bar"><span id="sel-n">Tap slots to select</span><div class="sel-btns"><button class="sel-act su-yes" onclick="bulkMark('yes')"><i class="ti ti-check"></i> Well utilised</button><button class="sel-act su-clr" onclick="bulkMark('')">Unmark</button><button class="su-done" onclick="toggleSelMode()">Done</button></div></div>
   <div id="toast"></div>
 
   <!-- IDEAL DAY (opened from Settings) -->
@@ -972,7 +1030,7 @@ body{color:var(--ink)}
 </div>
 
 <script>
-const BUILD='v9.0 — 16 Oct 2026';
+const BUILD='v9.3 — 21 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -1026,7 +1084,7 @@ const KMETA={work:{lbl:'Work',ic:'ti-briefcase',ph:'What must move forward at wo
 let lastAutoToday=null; // the "today" we auto-set in the date picker
 const PT_ST=['done','partial','missed'];
 function normPts(a,oldTxt,oldSt){
-  if(Array.isArray(a))return a.map(x=>{const o={t:String((x&&x.t)||''),s:PT_ST.includes(x&&x.s)?x.s:'',c:String((x&&x.c)||'')};if(x&&x.d)o.d=String(x.d);return o;});
+  if(Array.isArray(a))return a.map(x=>{const o={t:String((x&&x.t)||''),s:PT_ST.includes(x&&x.s)?x.s:'',c:String((x&&x.c)||'')};if(x&&x.d)o.d=String(x.d);if(x&&/^\d{4}-\d{2}-\d{2}$/.test(x.o||''))o.o=x.o;return o;});
   if(typeof oldTxt==='string'&&oldTxt.trim())return[{t:oldTxt,s:PT_ST.includes(oldSt)?oldSt:'',c:''}];
   return[];
 }
@@ -1040,8 +1098,9 @@ function normIntent(o){
   return{work:normPts(o.work,o.work,o.workStatus),life:normPts(o.life,o.life,o.lifeStatus),
     workExtra:normList(o.workExtra,str('workExtra')||str('extra')),lifeExtra:normList(o.lifeExtra,str('lifeExtra')),
     workSummary:str('workSummary')||str('summary'),lifeSummary:str('lifeSummary'),
-    workReviewed:o.workReviewed===true,lifeReviewed:o.lifeReviewed===true};
+    workReviewed:o.workReviewed===true,lifeReviewed:o.lifeReviewed===true,slotsReviewed:o.slotsReviewed===true};
 }
+function intentKeep(o){return intentHasContent(o)||!!(o&&(o.workReviewed||o.lifeReviewed||o.slotsReviewed));}   // worth saving to the cloud
 function intentHasContent(o){
   if(!o)return false;
   const L=k=>(o[k]||[]).some(p=>(p.t||'').trim());
@@ -1052,8 +1111,7 @@ let intent = normIntent({});  // {work,life,workStatus,lifeStatus,extra,summary}
 let eodOpen = false;
 let recRules=[],dirtyRec=false,fbRecT=null,recDays=new Set([1,2,3,4,5]);   // recurring slots
 const SLOT_REV_FROM='2026-10-14';   // days before this were never asked for it, so they don't show up as overdue
-const USE_LBL={yes:'Yes',maybe:'Maybe',no:'No'};
-const SLOT_FLT=[['all','All'],['filled','Filled'],['unrated','Not rated'],['yes','Yes'],['maybe','Maybe'],['no','No']];
+const SLOT_FLT=[['all','All'],['yes','Well utilised'],['no','Not marked']];
 let slotFilter='all';
 let selMode=false,selSet=new Set();   // bulk review on the Schedule page
 let intView = 'all';  // All / Work / Life filter inside the Intentions tab
@@ -1149,6 +1207,13 @@ function fmtDate(dk){
    Structure: { idealSlots:{}, days:{'2026-07-02':{slots,dayTimes,isHoliday}, ...} }
    This avoids subcollections which require separate Firestore security rules. */
 
+// When was this day last edited on this device and not yet confirmed by the cloud? 0 = nothing pending.
+function unsyncedAt(dk){const v=ls('tm_unsynced_'+dk);if(!v)return 0;const n=Number(v);return n>1?n:1;}
+// Does the cloud copy carry a newer save (from another device) than this device's pending edit?
+function remoteIsNewer(dk,remote){
+  const u=remote&&remote.updatedAt,ms=u&&typeof u.toMillis==='function'?u.toMillis():(typeof u==='number'?u:0);
+  return !!ms&&ms>unsyncedAt(dk)+2000;
+}
 function writeDayNow(){
   if(!uid)return Promise.resolve();
   // Use the day that is actually LOADED in memory, not the date-picker value:
@@ -1170,7 +1235,7 @@ function writeDayNow(){
   if(!dirty){
     // Nothing to send. If the cloud already holds exactly this copy, a leftover marker is stale — clear it.
     const rd=remoteDays[dk]||{};
-    if(ls('tm_unsynced_'+dk)==='1'&&JSON.stringify(rd.slots||{})===JSON.stringify(snapSlots)&&JSON.stringify(normIntent(rd.intent))===JSON.stringify(normIntent(snapIntent)))ls('tm_unsynced_'+dk,'');
+    if(unsyncedAt(dk)&&JSON.stringify(rd.slots||{})===JSON.stringify(snapSlots)&&JSON.stringify(normIntent(rd.intent))===JSON.stringify(normIntent(snapIntent)))ls('tm_unsynced_'+dk,'');
     return Promise.resolve();
   }
   // GUARD 3: never overwrite a non-empty cloud day with an empty local day.
@@ -1190,7 +1255,7 @@ function writeDayNow(){
     showSync('synced');
     return Promise.resolve();
   }
-  const dayObj={slots:snapSlots,dayTimes:snapTimes,isHoliday:snapHol,date:dk,...(intentHasContent(snapIntent)?{intent:snapIntent}:{})};
+  const dayObj={slots:snapSlots,dayTimes:snapTimes,isHoliday:snapHol,date:dk,...(intentKeep(snapIntent)?{intent:snapIntent}:{})};
   showSync('syncing');
   const FP=firebase.firestore.FieldPath;
   const wr=layout2
@@ -1354,10 +1419,13 @@ function applyRemote(d){
     // A previous session saved locally but its cloud write never completed
     // (app killed mid-debounce, offline, crash). Local is newer — push it up
     // instead of letting the stale cloud copy revert the edit.
-    if(ls('tm_unsynced_'+dk)==='1'){
-      ls('tm_bak_'+dk,JSON.stringify(inSlots)); // keep the cloud copy recoverable
-      dirty=true;syncDay();
-      return;
+    if(unsyncedAt(dk)){
+      if(remoteIsNewer(dk,dayData)){ls('tm_unsynced_'+dk,'');}   // newer save from another device wins; the outgoing copy is backed up just below
+      else{
+        ls('tm_bak_'+dk,JSON.stringify(inSlots)); // keep the cloud copy recoverable
+        dirty=true;syncDay();
+        return;
+      }
     }
     // Safety net: before remote replaces a non-empty local day, keep the
     // outgoing copy in localStorage (tm_bak_<date>) so it's recoverable.
@@ -1612,7 +1680,7 @@ function showTab(t){
   flushIdeal();
   const dk_=document.body.classList.contains('desk');
   document.body.classList.toggle('d-both',dk_&&t==='slots');
-  ['slots','intent','goals'].forEach(n=>{document.getElementById('sec-'+n).classList.toggle('on',n===t||(dk_&&t==='slots'&&n==='intent'));});
+  ['slots','intent','goals','summary'].forEach(n=>{document.getElementById('sec-'+n).classList.toggle('on',n===t||(dk_&&t==='slots'&&n==='intent'));});
   const v=t!=='slots';
   if(v)visionLast=t;
   document.getElementById('ntab-slots').classList.toggle('on',!v);
@@ -1622,12 +1690,13 @@ function showTab(t){
   const mc=document.getElementById('mini-cal');if(mc)mc.dataset.on=(t==='slots'||t==='intent')?'1':'';
   deskTab=t;   // the header date applies to the schedule and the Day view only
   if(v){
-    const m=t==='intent'?'day':goalType;
-    ['day','week','month','year'].forEach(k=>document.getElementById('vb-'+k).classList.toggle('on',k===m));
+    const m=t==='intent'?'day':t==='summary'?'summary':goalType;
+    ['day','week','month','year','summary'].forEach(k=>document.getElementById('vb-'+k).classList.toggle('on',k===m));
   }
   if(t==='slots')renderSched();
   if(t==='intent')renderDayTop();
   if(t==='goals')renderGoals();
+  if(t==='summary')renderSummary();
   updateDeskHead();renderMiniCal();updSelBar();
 }
 function updateDeskHead(){
@@ -1682,7 +1751,8 @@ function openIdeal(){closeSettings();renderIdeal();document.getElementById('idea
 function closeIdeal(){flushIdeal();const el=document.getElementById('ideal-sheet');if(el)el.classList.remove('open');}
 function openVision(){showTab(visionLast||'intent');}
 function visionGo(m){
-  if(m==='day')showTab('intent');
+  if(m==='summary')showTab('summary');
+  else if(m==='day')showTab('intent');
   else{goalType=m;goalCursor=curKey(m,new Date());showTab('goals');}
 }
 
@@ -1724,9 +1794,9 @@ function onDateChange(){
       const inSlots=dayData.slots||{};
       // Unsynced local edits from a previous session win — push, don't pull.
       const inIntent=normIntent(dayData.intent);
-      if((JSON.stringify(inSlots)!==JSON.stringify(slots)||JSON.stringify(inIntent)!==JSON.stringify(intent))&&ls('tm_unsynced_'+dk)==='1'){
-        ls('tm_bak_'+dk,JSON.stringify(inSlots));
-        dirty=true;syncDay();return;
+      if((JSON.stringify(inSlots)!==JSON.stringify(slots)||JSON.stringify(inIntent)!==JSON.stringify(intent))&&unsyncedAt(dk)){
+        if(remoteIsNewer(dk,dayData)){if(dayHasContent(slots))ls('tm_bak_'+dk,JSON.stringify(slots));ls('tm_unsynced_'+dk,'');}   // another device saved after this device's pending edit: take the cloud copy, keep ours as a backup
+        else{ls('tm_bak_'+dk,JSON.stringify(inSlots));dirty=true;syncDay();return;}
       }
       slots=inSlots;intent=inIntent;ls('tm_int_'+dk,JSON.stringify(intent));
       if(dayData.dayTimes)dayTimes={...DEF,...dayData.dayTimes};
@@ -1748,14 +1818,10 @@ function kindSlots(d){   // the work / life time slots of a day, from its own da
   if(d&&d.isHoliday)return{work:[],life:makeSlots(dt.wake,dt.sleep)};
   return{work:makeSlots(dt.workReach,dt.workLeave),life:[...makeSlots(dt.wake,dt.workReach),...makeSlots(dt.workLeave,dt.sleep)]};
 }
-function useCounts(d,kind){   // every slot has a review: Yes / Maybe / No, or blank = Not filled (nothing planned or done)
-  const s=(d&&d.slots)||{},c={yes:0,maybe:0,no:0,nofill:0,pending:0,total:0};
-  kindSlots(d)[kind].forEach(t=>{
-    const x=s[t]||{},u=x.use;
-    if(USE_LBL[u]){c[u]++;if(slotHasContent(x))c.total++;return;}
-    if(slotHasContent(x)){c.total++;c.pending++;}else c.nofill++;   // filled but not yet reviewed -> overdue; empty & blank -> Not filled
-  });
-  return c;
+function useCounts(d){   // time review: how many 30-minute slots of the day were well utilised, out of every slot of the day
+  const sl=(d&&d.slots)||{},ks=kindSlots(d),f=a=>({well:a.filter(t=>(sl[t]||{}).use==='yes').length,total:a.length});
+  const w=f(ks.work),l=f(ks.life);
+  return{well:w.well+l.well,total:w.total+l.total,work:w,life:l};
 }
 function isDone(s){return !!((s&&s.done)||'').trim()||!!(s&&s.skip);}
 
@@ -1828,7 +1894,8 @@ function save(){
   ls('tm_hol_'+dk,isHoliday?'1':'');
   ls(`tm_${dk}`,JSON.stringify(slots));
   ls('tm_int_'+dk,JSON.stringify(intent));
-  ls('tm_unsynced_'+dk,'1'); // cleared only when the cloud write succeeds
+  if(!dirty)return;   // a blur or tap with no real edit must never mark the day as 'unsynced' (that marker means "my copy is newer")
+  ls('tm_unsynced_'+dk,String(Date.now())); // time of the last local edit; cleared only when the cloud write succeeds
   syncDay();
 }
 function saveIdeal(){
@@ -1847,7 +1914,7 @@ function autoGrow(ta){
 // ── Bulk review: select many slots, then mark them Yes / Maybe / No in one go ──
 function DONEBAR(){return toggleBar('Show done column','ti-notes',showDone,'toggleDone');}
 function selBox(t){const on=selSet.has(t);return`<button class="sel-cb${on?' on':''}" onclick="toggleSel('${t}')" aria-label="Select slot" aria-pressed="${on}"><i class="ti ${on?'ti-square-check-filled':'ti-square'}"></i></button>`;}
-function slotMatches(t){const x=slots[t]||{};switch(slotFilter){case 'filled':return slotHasContent(x);case 'unrated':return slotHasContent(x)&&!USE_LBL[x.use];case 'yes':case 'maybe':case 'no':return x.use===slotFilter;default:return true;}}
+function slotMatches(t){const x=slots[t]||{};return slotFilter==='yes'?x.use==='yes':slotFilter==='no'?x.use!=='yes':true;}
 function applySlotFilter(){
   const act=document.activeElement;
   document.querySelectorAll('#sched-container [data-t]').forEach(r=>{
@@ -1866,7 +1933,7 @@ function selVisible(){   // slots shown on the page right now
   return want.flatMap(k=>ks[k]).filter(slotMatches);
 }
 function bulkCtl(){
-  let h=toggleBar('Select several slots to review','ti-checklist',selMode,'toggleSelMode');
+  let h=toggleBar('Select slots to mark well utilised','ti-checklist',selMode,'toggleSelMode');
   if(selMode)h+=`<div class="sel-help flt"><span>Show:</span>`+SLOT_FLT.map(([k,l])=>`<button class="${slotFilter===k?'on':''}" onclick="setSlotFilter('${k}')">${l}</button>`).join('')+`</div>`;
   if(selMode)h+=`<div class="sel-help"><span>Select:</span><button onclick="selPick('all')">All shown</button><button onclick="selPick('none')">None</button></div>`;
   return h;
@@ -1880,7 +1947,7 @@ function toggleSel(t){
 }
 function selPick(how){
   selSet.clear();
-  if(how!=='none')selVisible().forEach(t=>{const x=slots[t]||{};if(how==='all'||(how==='filled'&&slotHasContent(x))||(how==='unrated'&&slotHasContent(x)&&!USE_LBL[x.use]))selSet.add(t);});
+  if(how!=='none')selVisible().forEach(t=>selSet.add(t));
   renderSched();updSelBar();
 }
 function updSelBar(){
@@ -1890,29 +1957,28 @@ function updSelBar(){
   const n=selSet.size;document.getElementById('sel-n').textContent=n?`${n} selected`:'Tap slots to select';
   bar.querySelectorAll('.sel-act').forEach(b=>b.disabled=!n);
 }
-function bulkMark(v){
+function bulkMark(v){   // v = 'yes' (well utilised) or '' (not marked)
   if(!selSet.size)return;
   const n=selSet.size;
   selSet.forEach(t=>{
     if(!slots[t])slots[t]={plan:'',done:'',types:[]};
     const x=slots[t];if(!Array.isArray(x.types))x.types=gtypes(x);
-    if(v)x.use=v;else delete x.use;
+    if(v)x.use='yes';else delete x.use;
   });
   dirty=true;save();selSet.clear();renderSched();updSelBar();
-  toast(v?`${n} slot${n>1?'s':''} marked ${USE_LBL[v]}`:`Cleared ${n} slot${n>1?'s':''}`);
+  toast(v?`${n} slot${n>1?'s':''} marked well utilised`:`${n} slot${n>1?'s':''} unmarked`);
 }
-function useBtnState(s){const u=s.use;return USE_LBL[u]?{cls:' u-'+u,lbl:USE_LBL[u]}:slotHasContent(s)?{cls:'',lbl:'Rate'}:{cls:' u-nf',lbl:'Blank'};}
+function useBtnState(s){return s.use==='yes'?{cls:' u-yes',lbl:'Well'}:{cls:' u-nf',lbl:'Mark'};}
 function useBtn(t,s,ro){
   const st=useBtnState(s);
   if(ro)return`<span class="use-btn${st.cls}" id="ub-${t.replace(/[:-]/g,'')}" style="pointer-events:none">${st.lbl}</span>`;
-  return`<button class="use-btn${st.cls}" id="ub-${t.replace(/[:-]/g,'')}" title="Was this slot used well? Tap to change" onclick="cycleUse('${t}')">${st.lbl}</button>`;
+  return`<button class="use-btn${st.cls}" id="ub-${t.replace(/[:-]/g,'')}" title="Tap to mark this slot as well utilised" onclick="cycleUse('${t}')">${st.lbl}</button>`;
 }
-function cycleUse(t){
+function cycleUse(t){   // tap: well utilised on / off
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   const x=slots[t];
   if(!Array.isArray(x.types))x.types=gtypes(x);
-  const order=['','yes','maybe','no'],n=order[(order.indexOf(x.use||'')+1)%4];
-  if(n)x.use=n;else delete x.use;
+  if(x.use==='yes')delete x.use;else x.use='yes';
   dirty=true;save();refreshUse(t);if(slotFilter!=='all')applySlotFilter();
 }
 function refreshUse(t){
@@ -1920,15 +1986,18 @@ function refreshUse(t){
   if(b){const st=useBtnState(x);b.className='use-btn'+st.cls;b.textContent=st.lbl;}
   updUseSum();applySlotFilter();
 }
-function useChips(c){
-  return`<span class="use-chip u-yes"><b>${c.yes}</b> Yes</span><span class="use-chip u-maybe"><b>${c.maybe}</b> Maybe</span><span class="use-chip u-no"><b>${c.no}</b> No</span><span class="use-chip u-nf"><b>${c.nofill}</b> Not filled</span>${c.pending?`<span class="use-chip u-pend"><b>${c.pending}</b> to rate</span>`:''}`;
+function toggleSlotsDone(){
+  intent.slotsReviewed=!intent.slotsReviewed;dirty=true;intentTouched=loadedDk;save();
+  updUseSum();updateOverdueBadge();toast(intent.slotsReviewed?'Time review marked done':'Time review reopened');
 }
-function useEodHtml(kind){   // shown inside the End of day review, one per Work / Life
-  const c=useCounts({slots,dayTimes,isHoliday},kind);
-  return`<div class="use-eod use-box" data-kind="${kind}"><div class="use-hd">Time slots used well</div><div class="use-chips">${useChips(c)}</div><button class="rv-done" onclick="goSlots('${kind}')"><i class="ti ti-clock-check"></i> ${c.pending?'Review time slots':'Edit time-slot review'}</button></div>`;
+function useCardHtml(cls,kind){   // small per-section line: "Time slots used well  5 / 18" + select + done
+  const c=useCounts({slots,dayTimes,isHoliday}),on=!!intent.slotsReviewed,k=kind&&c[kind]?kind:'',x=k?c[k]:c;
+  const pct=x.total?Math.round(100*x.well/x.total):0;
+  return`<div class="${cls} use-box use-sm" data-kind="${kind||''}"><div class="use-row"><span class="use-hd">Time slots used well</span><span class="use-num"><b>${x.well}</b> / ${x.total}</span></div><div class="use-bar"><i style="width:${pct}%"></i></div><div class="use-btns"><button class="rv-done" onclick="goSlots('${k||'all'}')"><i class="ti ti-clock-check"></i> Select slots</button><button class="rv-done${on?' on':''}" onclick="toggleSlotsDone()"><i class="ti ti-circle-check"></i> ${on?'Time review done':'Time review is done'}</button></div></div>`;
 }
+function useEodHtml(kind){return useCardHtml('use-eod',kind);}   // inside the End of day review
 function updUseSum(){
-  document.querySelectorAll('.use-eod').forEach(e=>{const t=document.createElement('div');t.innerHTML=useEodHtml(e.dataset.kind);e.replaceWith(t.firstElementChild);});
+  document.querySelectorAll('.use-eod').forEach(e=>{const t=document.createElement('div');t.innerHTML=useCardHtml('use-eod',e.dataset.kind);e.replaceWith(t.firstElementChild);});
 }
 function goSlots(kind){setSchedView(kind);showTab('slots');window.scrollTo(0,0);}   // rate the slots on the Schedule page
 function slotRow(t,isWork){
@@ -2262,10 +2331,10 @@ function buildDayRows(dk,d){
   const date=fmtDate(dk);
   const rows=[...lp,...w,...lpo].map(t=>{
     const sl=s[t]||{};
-    return[date,cat[t],t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),gtypes(sl).join(', '),USE_LBL[sl.use]||''];
+    return[date,cat[t],t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),gtypes(sl).join(', '),sl.use==='yes'?'Yes':''];
   });
   // entries saved under times that are outside the current wake/sleep grid (times changed later) must not be lost
-  Object.keys(s).filter(t=>!cat[t]&&dayHasContent({[t]:s[t]})).sort().forEach(t=>{const sl=s[t];rows.push([date,'Outside day times',t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),gtypes(sl).join(', '),USE_LBL[sl.use]||'']);});
+  Object.keys(s).filter(t=>!cat[t]&&dayHasContent({[t]:s[t]})).sort().forEach(t=>{const sl=s[t];rows.push([date,'Outside day times',t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),gtypes(sl).join(', '),sl.use==='yes'?'Yes':'']);});
   return rows;
 }
 function dayHasMeta(d){const dt=d.dayTimes||{};return !!d.isHoliday||Object.keys(DEF).some(k=>validTime(dt[k])&&dt[k]!==DEF[k]);}
@@ -2292,8 +2361,8 @@ function buildReviewRows(dk,d){
   return out;
 }
 
-const DAY_HDR=['Date','Weekday','Day type','Wake','Work start','Work end','Sleep','Work slots done','Work slots total','Life slots done','Life slots total','Work intentions','Life intentions','Work other things done','Life other things done','Work summary','Life summary','Work used well: Yes','Work used well: Maybe','Work used well: No','Work not filled','Work to rate','Life used well: Yes','Life used well: Maybe','Life used well: No','Life not filled','Life to rate'];
-function useCols(d,k){const c=useCounts(d,k);return[c.yes,c.maybe,c.no,c.nofill,c.pending];}
+const DAY_HDR=['Date','Weekday','Day type','Wake','Work start','Work end','Sleep','Work slots done','Work slots total','Life slots done','Life slots total','Work intentions','Life intentions','Work other things done','Life other things done','Work summary','Life summary','Slots well utilised','Total slots','Work slots well utilised','Life slots well utilised','Time review done'];
+function useCols(d){const c=useCounts(d);return[c.well,c.total,c.work.well,c.life.well,normIntent(d.intent).slotsReviewed?'Yes':''];}
 function buildDaySummaryRow(dk,d){
   const dt={...DEF};['wake','workReach','workLeave','sleep'].forEach(k=>{const v=(d.dayTimes||{})[k];if(validTime(v))dt[k]=v;});
   const hol=!!d.isHoliday,s=d.slots||{},it=normIntent(d.intent);
@@ -2305,7 +2374,7 @@ function buildDaySummaryRow(dk,d){
   const pts=k=>it[k].filter(p=>p.t.trim()).map(p=>`• ${p.t.trim()}${(p.d||'').trim()?` {${p.d.trim().replace(/\s*\n+\s*/g,' / ')}}`:''}${p.s?` [${STLBL[p.s]}]`:''}${(p.c||'').trim()?` — ${p.c.trim()}`:''}`).join('\n');
   const ex=k=>it[k+'Extra'].filter(p=>p.t.trim()).map(p=>`• ${p.t.trim()}`).join('\n');
   const [y,m,dd]=dk.split('-').map(Number);
-  return[fmtDate(dk),new Date(y,m-1,dd).toLocaleDateString('en-IN',{weekday:'short'}),hol?'Holiday':'Workday',dt.wake,hol?'':dt.workReach,hol?'':dt.workLeave,dt.sleep,dn(w),w.length,dn(life),life.length,pts('work'),pts('life'),ex('work'),ex('life'),(it.workSummary||'').trim(),(it.lifeSummary||'').trim(),...useCols(d,'work'),...useCols(d,'life')];
+  return[fmtDate(dk),new Date(y,m-1,dd).toLocaleDateString('en-IN',{weekday:'short'}),hol?'Holiday':'Workday',dt.wake,hol?'':dt.workReach,hol?'':dt.workLeave,dt.sleep,dn(w),w.length,dn(life),life.length,pts('work'),pts('life'),ex('work'),ex('life'),(it.workSummary||'').trim(),(it.lifeSummary||'').trim(),...useCols(d)];
 }
 
 let exportInFlight=false;
@@ -2625,8 +2694,111 @@ function reviewGroup(kind){
   const chip=(i,st,v,ic,l)=>`<button class="rv-chip${st===v?' on-'+v:''}" title="${l}" aria-label="${l}" onclick="setPointStatus('${kind}',${i},'${v}')"><i class="ti ${ic}"></i></button>`;
   return L.map(({p,i})=>{
     const open=!!(p.c||'').trim()||!!rvNote[kind+'|'+i];
-    return`<div class="rv-pt"><div class="rv-line"><div class="rv-text">${esc(p.t)}</div><div class="rv-chips">${chip(i,p.s,'done','ti-check','Achieved')}${chip(i,p.s,'partial','ti-minus','Partly')}${chip(i,p.s,'missed','ti-x','Missed')}<button class="rv-chip rv-note${open?' on-note':''}" title="Comment" aria-label="Comment" onclick="toggleNote('${kind}',${i})"><i class="ti ti-message"></i></button></div></div>${open?`<div class="rv-cmt"><textarea class="sta" id="rc-${kind}-${i}" rows="1" maxlength="300" placeholder="Comment…" oninput="updPointC('${kind}',${i},this.value);autoGrow(this)" onblur="save()">${esc(p.c)}</textarea></div>`:''}</div>`;
+    return`<div class="rv-pt"><div class="rv-line"><div class="rv-text">${esc(p.t)}${sinceTag(p)}</div><div class="rv-chips">${chip(i,p.s,'done','ti-check','Achieved')}${chip(i,p.s,'partial','ti-minus','Partly')}${chip(i,p.s,'missed','ti-x','Missed')}${p.s==='done'?'':`<button class="rv-chip rv-carry" title="Carry forward to ${carryLbl(kind)}" aria-label="Carry forward to ${carryLbl(kind)}" onclick="carryFwd('${kind}',${i})"><i class="ti ti-arrow-forward-up"></i></button>`}<button class="rv-chip rv-note${open?' on-note':''}" title="Comment" aria-label="Comment" onclick="toggleNote('${kind}',${i})"><i class="ti ti-message"></i></button></div></div>${open?`<div class="rv-cmt"><textarea class="sta" id="rc-${kind}-${i}" rows="1" maxlength="300" placeholder="Comment…" oninput="updPointC('${kind}',${i},this.value);autoGrow(this)" onblur="save()">${esc(p.c)}</textarea></div>`:''}</div>`;
   }).join('');
+}
+
+
+// ── Carry forward (at review): copy an unfinished intention to the next day / week / month / year ──
+function sinceTxt(o){
+  if(!o)return'';const [y,m,d]=o.split('-').map(Number);if(!y)return'';
+  return `${d} ${MON[m-1]}${y!==new Date().getFullYear()?' '+y:''}`;
+}
+function sinceTag(p){return p&&p.o?`<span class="since" title="This intention has been pending since ${sinceTxt(p.o)}">pending since ${sinceTxt(p.o)}</span>`:'';}
+function carryTarget(kind){   // → {type:'day'|'week'|'month'|'year', key, label}
+  if(!isP(kind)){const [y,m,d]=loadedDk.split('-').map(Number),n=new Date(y,m-1,d+1);return{type:'day',key:ymd(n),label:'tomorrow'};}
+  const r=periodRange(goalCursor),t=keyType(goalCursor),n=new Date(r.e.getFullYear(),r.e.getMonth(),r.e.getDate()+1);
+  return{type:t,key:curKey(t,n),label:'next '+t};
+}
+function carryLbl(kind){try{return carryTarget(kind).label;}catch(e){return'next period';}}
+function periodStartYmd(key){return ymd(periodRange(key).s);}
+function touchPeriodKey(k){const P=periods[k];if(!P)return;P.u=Date.now();periodDirty.add(k);savePeriods();schedulePeriodPush();updateOverdueBadge();}
+async function carryFwd(kind,i){
+  const src=pts(kind)[i];if(!src||!src.t.trim())return;
+  const base=kind.replace('p:',''),tg=carryTarget(kind);
+  const origin=src.o||(isP(kind)?periodStartYmd(goalCursor):loadedDk);
+  const item={t:src.t,s:'',c:'',o:origin};if((src.d||'').trim())item.d=src.d;
+  const same=L=>L.some(p=>p.t.trim()===src.t.trim()&&(p.o||'')===origin);
+  if(tg.type!=='day'){
+    const P=periods[tg.key]||(periods[tg.key]=normPeriod(null)),L=P[base].g;
+    if(same(L)){toast('Already carried to '+tg.label);return;}
+    if(L.filter(p=>p.t.trim()).length>=MAXPTS){toast(`${tg.label} already has ${MAXPTS} intentions`);return;}
+    L.push(item);touchPeriodKey(tg.key);toast('Carried to '+tg.label+' · pending since '+sinceTxt(origin));return;
+  }
+  // a day: it may be the open one, another cached one, or one that does not exist yet
+  if(tg.key===loadedDk){
+    if(same(intent[base])){toast('Already carried to tomorrow');return;}
+    if(intent[base].filter(p=>p.t.trim()).length>=MAXPTS){toast(`Tomorrow already has ${MAXPTS} intentions`);return;}
+    intent[base].push(item);dirty=true;intentTouched=loadedDk;save();renderDayTop();toast('Carried to tomorrow · pending since '+sinceTxt(origin));return;
+  }
+  if(!uid||!hydrated||(layout2&&!daysHydrated)){toast('Still loading from the cloud — try again in a moment');return;}
+  const ex=dayDataFor(tg.key),o=normDayObj(tg.key,ex||{slots:{},dayTimes:{...dayTimes},isHoliday:false}),it=normIntent(ex&&ex.intent);
+  if(same(it[base])){toast('Already carried to tomorrow');return;}
+  if(it[base].filter(p=>p.t.trim()).length>=MAXPTS){toast(`Tomorrow already has ${MAXPTS} intentions`);return;}
+  it[base].push(item);o.intent=it;
+  ls('tm_int_'+tg.key,JSON.stringify(it));
+  if(!ex){ls('tm_'+tg.key,'{}');}
+  remoteDays[tg.key]=o;
+  const FP=firebase.firestore.FieldPath;
+  try{
+    await (layout2?daysCol().doc(tg.key).set({...o,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
+      :db.collection('time-mgmt').doc(uid).set({days:{[tg.key]:o},updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{mergeFields:[new FP('days',tg.key),'updatedAt']}));
+    toast('Carried to tomorrow · pending since '+sinceTxt(origin));updateOverdueBadge();
+  }catch(e){toast('Could not save to the cloud — check your connection and try again');}
+}
+
+
+// ── Summary: every intention of every day, week, month and year, newest first ──
+let sumView='all',sumType='all',sumLimit=30;
+const SUM_TYPES=[['all','All'],['day','Days'],['week','Weeks'],['month','Months'],['year','Years']];
+function setSumView(v){sumView=v;sumLimit=30;renderSummary();}
+function setSumType(t){sumType=t;sumLimit=30;renderSummary();}
+function sumMore(){sumLimit+=30;renderSummary();}
+function sumOpen(type,key){
+  if(type==='day'){document.getElementById('date-pick').value=key;onDateChange();eodOpen=true;showTab('intent');}
+  else{goalType=type;goalCursor=key;goalReviewOpen=false;showTab('goals');}
+}
+function sumEntries(){   // [{type,key,start:'YYYY-MM-DD',main,sub,items:{work:[],life:[]}}]
+  const out=[],has=it=>['work','life'].some(k=>it[k].some(p=>p.t.trim()));
+  const dks=new Set([...Object.keys(remoteDays||{}),dateKey()]);
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('tm_int_'))dks.add(k.slice(7));}}catch(e){}
+  dks.forEach(dk=>{
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dk))return;
+    const d=dayDataFor(dk);if(!d)return;const it=normIntent(d.intent);if(!has(it))return;
+    const [y,m,dd]=dk.split('-').map(Number);
+    out.push({type:'day',key:dk,start:dk,main:new Date(y,m-1,dd).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}),sub:String(y),items:{work:it.work,life:it.life},open:dk===dateKey()});
+  });
+  Object.keys(periods).forEach(key=>{
+    const P=periods[key];if(!P||!['work','life'].some(k=>P[k].g.some(p=>p.t.trim())))return;
+    const lab=periodLabel(key);
+    out.push({type:keyType(key),key,start:periodStartYmd(key),main:lab.main,sub:lab.sub,items:{work:P.work.g,life:P.life.g}});
+  });
+  return out.sort((a,b)=>a.start<b.start?1:a.start>b.start?-1:0);
+}
+const SUM_IC={done:'ti-check',partial:'ti-minus',missed:'ti-x'};
+function sumRow(e){
+  const kinds=sumView==='all'?['work','life']:[sumView];let n={done:0,partial:0,missed:0,open:0},body='';
+  kinds.forEach(k=>{
+    const L=e.items[k].filter(p=>p.t.trim());if(!L.length)return;
+    body+=`<div class="sum-k k-${k}">${KMETA[k].lbl}</div>`+L.map(p=>{
+      const st=PT_ST.includes(p.s)&&p.s?p.s:'';n[st||'open']++;
+      return`<div class="sum-it st-${st||'open'}"><i class="ti ${SUM_IC[st]||'ti-circle'}"></i><span><span class="sum-t">${esc(p.t)}</span>${sinceTag(p)}${(p.c||'').trim()?`<em class="sum-cm">${esc(p.c.trim())}</em>`:''}</span></div>`;}).join('');
+  });
+  if(!body)return'';
+  const bits=[n.done&&`${n.done} done`,n.partial&&`${n.partial} partly`,n.missed&&`${n.missed} missed`,n.open&&`${n.open} open`].filter(Boolean).join(' · ');
+  return`<div class="sum-card"><button class="sum-hd" onclick="sumOpen('${e.type}','${e.key}')"><div><b>${esc(e.main)}</b><small>${esc(e.sub)}</small></div><span class="sum-stat">${bits}</span><i class="ti ti-chevron-right"></i></button>${body}</div>`;
+}
+function renderSummary(){
+  const body=document.getElementById('summary-body');if(!body)return;
+  ['all','work','life'].forEach(k=>{const b=document.getElementById('sv-'+k);if(b)b.className='sub-tab'+(sumView===k?' on-'+k:'');});
+  document.getElementById('sum-types').innerHTML=SUM_TYPES.map(([k,l])=>`<button class="${sumType===k?'on':''}" onclick="setSumType('${k}')">${l}</button>`).join('');
+  const all=sumEntries(),groups=sumType==='all'?['day','week','month','year']:[sumType],names={day:'Days',week:'Weeks',month:'Months',year:'Years'};
+  let h='',any=false;
+  groups.forEach(g=>{
+    const rows=all.filter(e=>e.type===g).map(sumRow).filter(Boolean);if(!rows.length)return;any=true;
+    h+=`<div class="sum-grp">${names[g]} <small>${rows.length}</small></div>`+rows.slice(0,sumLimit).join('')+(rows.length>sumLimit?`<button class="sum-more" onclick="sumMore()">Show more (${rows.length-sumLimit})</button>`:'');
+  });
+  body.innerHTML=any?h:'<div class="card" style="color:var(--text3);font-size:13px">No intentions yet. Add some on the Day, Week, Month or Year pages and they will be listed here, newest first.</div>';
 }
 
 function toggleReviewed(kind){const k=kind+'Reviewed';intent[k]=!intent[k];dirty=true;intentTouched=loadedDk;save();renderDayTop();updateOverdueBadge();}
@@ -2736,10 +2908,9 @@ function overdueItems(){
     ['work','life'].forEach(k=>{
       if(k==='work'&&d.isHoliday)return;
       const intOver=!!d.intent&&it[k].some(p=>p.t.trim())&&!it[k+'Reviewed'];
-      const slotOver=dk>=SLOT_REV_FROM&&useCounts(d,k).pending>0;
-      if(intOver)out.push({type:'day',kind:k,key:dk,end:dk,slots:false});          // intentions and time slots are separate reviews: one row each
-      if(slotOver)out.push({type:'day',kind:k,key:dk,end:dk,slots:true});
+      if(intOver)out.push({type:'day',kind:k,key:dk,end:dk,slots:false});          // intentions and the time review are separate reviews
     });
+    if(dk>=SLOT_REV_FROM&&dayHasContent(d.slots||{})&&!it.slotsReviewed)out.push({type:'day',kind:'all',key:dk,end:dk,slots:true});   // one time review per day
   });
   Object.keys(periods).forEach(key=>{
     const P=periods[key],end=ymd(periodRange(key).e);
@@ -2754,23 +2925,23 @@ function updateOverdueBadge(){
   return n;
 }
 function overdueLabel(x){
-  if(x.type==='day'){const[y,m,d]=x.key.split('-').map(Number);return 'Day · '+new Date(y,m-1,d).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+(x.slots?' · time slots':'');}
+  if(x.type==='day'){const[y,m,d]=x.key.split('-').map(Number);return 'Day · '+new Date(y,m-1,d).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+(x.slots?' · time review':'');}
   return {week:'Week',month:'Month',year:'Year'}[x.type]+' · '+periodLabel(x.key).main;
 }
 function renderOverdue(){
   const all=overdueItems(),t0=new Date();t0.setHours(0,0,0,0);
-  [['overdue-box',all.filter(x=>goalView==='all'||x.kind===goalView)],['overdue-day',all]].forEach(([id,items])=>{   // Vision · Week/Month/Year follows its Work/Life filter; Vision · Day shows all
+  [['overdue-box',all.filter(x=>x.kind!=='all'&&(goalView==='all'||x.kind===goalView))],['overdue-day',all]].forEach(([id,items])=>{   // Vision · Week/Month/Year follows its Work/Life filter; Vision · Day shows all
     const el=document.getElementById(id);if(!el)return;
     if(!items.length){el.innerHTML='';return;}
     el.innerHTML=`<div class="card od-card"><div class="card-title" style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Overdue reviews (${items.length})</div>`
       +items.map(x=>{const[y,m,d]=x.end.split('-').map(Number),n=Math.round((t0-new Date(y,m-1,d))/86400000);
-        return`<button class="od-row" onclick="goOverdue('${x.type}','${x.kind}','${x.key}',${x.slots?1:0})"><span class="od-kind k-${x.kind}">${KMETA[x.kind].lbl}</span><span class="od-txt">${esc(overdueLabel(x))}</span><span class="od-ago">${n} day${n>1?'s':''} overdue</span><i class="ti ti-chevron-right"></i></button>`;}).join('')+'</div>';
+        return`<button class="od-row" onclick="goOverdue('${x.type}','${x.kind}','${x.key}',${x.slots?1:0})"><span class="od-kind k-${x.kind}">${x.kind==='all'?'Time':KMETA[x.kind].lbl}</span><span class="od-txt">${esc(overdueLabel(x))}</span><span class="od-ago">${n} day${n>1?'s':''} overdue</span><i class="ti ti-chevron-right"></i></button>`;}).join('')+'</div>';
   });
 }
 function goOverdue(type,kind,key,slotsToo){
   if(type==='day'){
     document.getElementById('date-pick').value=key;onDateChange();
-    if(slotsToo){setSchedView(kind);showTab('slots');return;}   // time slots are rated on the Schedule page
+    if(slotsToo){setSchedView(kind==='all'?'all':kind);showTab('slots');return;}   // time slots are rated on the Schedule page
     eodOpen=true;setIntView(kind);showTab('intent');
   }else{
     goalType=type;goalCursor=key;goalView=kind;goalReviewOpen=true;showTab('goals');
@@ -2833,7 +3004,7 @@ function bkStatus(){
 function normDayObj(dk,d){
   const dt={...DEF};['wake','workReach','workLeave','sleep'].forEach(k=>{if(d.dayTimes&&validTime(d.dayTimes[k]))dt[k]=d.dayTimes[k];});
   const it=normIntent(d.intent),o={slots:(d.slots&&typeof d.slots==='object')?d.slots:{},dayTimes:dt,isHoliday:!!d.isHoliday,date:dk};
-  if(intentHasContent(it)||it.workReviewed||it.lifeReviewed)o.intent=it;
+  if(intentKeep(it))o.intent=it;
   return o;
 }
 function backupSnapshot(){
@@ -2852,6 +3023,7 @@ function backupRows(snap){
   const put=(type,key,obj)=>{const j=JSON.stringify(obj);for(let i=0,n=0;i<j.length||n===0;i+=BK_CHUNK,n++)rows.push([type,key,n+1,j.slice(i,i+BK_CHUNK)]);};
   put('meta','backup',{v:1,at:new Date().toISOString(),days:Object.keys(snap.days).length,periods:Object.keys(snap.periods).length});
   put('ideal','ideal',snap.ideal);
+  put('recurring','recurring',snap.recurring||[]);
   Object.keys(snap.days).sort().forEach(k=>put('day','d_'+k,snap.days[k]));   // "d_" stops Sheets turning the date into a real date
   Object.keys(snap.periods).sort().forEach(k=>put('period',k,snap.periods[k]));
   return rows;
@@ -2863,7 +3035,7 @@ function parseBackupRows(rows){
   Object.keys(parts).forEach(k=>{
     const [type,key0]=k.split('\u0001'),key=type==='day'?key0.replace(/^d_/,''):key0;
     let o;try{o=JSON.parse(parts[k].sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join(''));}catch(e){throw new Error('The backup is damaged ('+type+' '+key+').');}
-    if(type==='meta')out.meta=o;else if(type==='ideal')out.ideal=o;
+    if(type==='meta')out.meta=o;else if(type==='ideal')out.ideal=o;else if(type==='recurring')out.recurring=o;
     else if(type==='day'&&/^\d{4}-\d{2}-\d{2}$/.test(key)&&o&&typeof o==='object')out.days[key]=normDayObj(key,o);
     else if(type==='period'&&/^[wmy]:/.test(key)&&o&&typeof o==='object')out.periods[key]=normPeriod(o);
   });
@@ -3099,7 +3271,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // Intention list used on the Day page and on Week / Month / Year: names outside, an icon opens the full page, new ones are typed in the box at the bottom
 function glList(kind,day,empty){
   const key=gKey(kind,day),g=pts(key),vis=g.map((p,i)=>i).filter(i=>g[i].t.trim()),d=day?1:0;
-  const rows=vis.map((i,n)=>`<div class="gl-row"><button class="gl-txt" onclick="openGoalEdit('${kind}',${i},${d})">${esc(g[i].t)}</button><button class="gl-open${(g[i].d||'').trim()?' has':''}" onclick="openGoalEdit('${kind}',${i},${d})" aria-label="Open intention" title="${(g[i].d||'').trim()?'Open details':'Add details'}"><i class="ti ti-file-text"></i></button><span class="gl-ord"><button class="pt-mv" ${n===0?'disabled':''} onclick="gMove('${kind}',${i},-1,${d})" aria-label="Move up"><i class="ti ti-chevron-up"></i></button><button class="pt-mv" ${n===vis.length-1?'disabled':''} onclick="gMove('${kind}',${i},1,${d})" aria-label="Move down"><i class="ti ti-chevron-down"></i></button></span></div>`).join('');
+  const rows=vis.map((i,n)=>`<div class="gl-row"><button class="gl-txt" onclick="openGoalEdit('${kind}',${i},${d})">${esc(g[i].t)}${sinceTag(g[i])}</button><button class="gl-open${(g[i].d||'').trim()?' has':''}" onclick="openGoalEdit('${kind}',${i},${d})" aria-label="Open intention" title="${(g[i].d||'').trim()?'Open details':'Add details'}"><i class="ti ti-file-text"></i></button><span class="gl-ord"><button class="pt-mv" ${n===0?'disabled':''} onclick="gMove('${kind}',${i},-1,${d})" aria-label="Move up"><i class="ti ti-chevron-up"></i></button><button class="pt-mv" ${n===vis.length-1?'disabled':''} onclick="gMove('${kind}',${i},1,${d})" aria-label="Move down"><i class="ti ti-chevron-down"></i></button></span></div>`).join('');
   const full=vis.length>=MAXPTS;
   return (rows||`<div class="rv-text empty" style="padding:10px 12px">${esc(empty)}</div>`)+(full?'':`<div class="gl-add"><input class="gl-in" id="gla-${key}" maxlength="200" enterkeyhint="done" placeholder="Add intention…" onkeydown="if(event.key==='Enter'){event.preventDefault();glAdd('${kind}',${d},this)}" onblur="glAdd('${kind}',${d},this,1)"><button class="gl-plus" onmousedown="event.preventDefault()" onclick="glAdd('${kind}',${d},this.previousElementSibling)" aria-label="Add"><i class="ti ti-plus"></i></button></div>`);
 }
