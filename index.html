@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Planner">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; form-action 'none'">
+<script>if(window.top!==window.self){document.documentElement.style.display='none';try{window.top.location=window.self.location;}catch(e){}}</script>
 <meta name="theme-color" content="#eef1ff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101320" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.json">
@@ -68,11 +71,9 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Displ
 .hdr-title svg{flex-shrink:0}
 .hdr-title .sync-dot{flex-shrink:0}
 .hdr-right{display:flex;align-items:center;gap:7px;flex-shrink:0;min-width:0}
-.hdr-email{font-size:11px;color:var(--text3);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-sm{background:none;border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:500}
 .btn-sm:active{background:var(--bg2)}
 @media(max-width:519px){
-  .hdr-email{display:none}
 }
 @media(max-width:420px){
   .hdr-title{font-size:15px}
@@ -184,19 +185,6 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Displ
 .apply-btn{margin-top:12px;width:100%;padding:10px;background:var(--accent);color:var(--on-accent);border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.12s}
 .apply-btn:active{background:var(--accent-dim)}
 
-/* ── Stats ── */
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.stat{background:var(--bg2);border-radius:var(--r);padding:12px 14px}
-.stat.full{grid-column:1/-1}
-.stat.w{border-left:3px solid var(--amber)}
-.stat.l{border-left:3px solid var(--teal)}
-.stat.d{border-left:3px solid var(--accent)}
-.stat-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3)}
-.stat-val{font-size:26px;font-weight:800;color:var(--text);line-height:1.1;margin-top:3px;letter-spacing:-0.5px}
-.stat-sub{font-size:11px;color:var(--text2);margin-top:3px}
-.prog{height:6px;border-radius:3px;background:var(--border2);overflow:hidden;margin-top:10px}
-.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width 0.4s}
-
 /* ── Misc ── */
 .msg{font-size:13px;padding:10px 14px;border-radius:9px;margin-top:10px;text-align:center;font-weight:500}
 .msg.ok{background:var(--green-bg);color:var(--green)}
@@ -297,9 +285,6 @@ html.locked #lock-screen{display:flex}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all 0.2s;z-index:600}
 #toast.show{opacity:1;transform:translateX(-50%)}
 .nbadge{display:inline-block;min-width:16px;height:16px;line-height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:0 4px;margin-left:3px;vertical-align:top}
-.ptype{display:flex;gap:6px;margin-bottom:10px}
-.ptype-btn{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border2);background:var(--bg);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit}
-.ptype-btn.on{background:var(--accent-bg);color:var(--accent-txt);border-color:var(--accent)}
 .rv-done{margin-top:14px;padding:7px 14px;border-radius:20px;border:1px solid var(--border2);background:var(--bg);font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
 .rv-done.on{background:var(--green-bg);color:var(--green);border-color:var(--green)}
 .od-card{border:1px solid var(--red)}
@@ -399,19 +384,14 @@ body.desk #ideal-container{display:block}
 
 .use-btn{margin-top:3px;align-self:flex-start;font-size:9px;font-weight:700;line-height:1;padding:3px 6px;border-radius:999px;border:1px dashed var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit}
 .use-btn.u-yes{border:1px solid var(--green);background:var(--green-bg);color:var(--green)}
-.use-btn.u-maybe{border:1px solid var(--amber);background:var(--amber-light);color:var(--amber)}
-.use-btn.u-no{border:1px solid var(--red);background:var(--red-bg);color:var(--red)}
 .use-btn.u-nf{border-style:solid;border-color:var(--border2);color:var(--text3);opacity:.75}
-.use-chip{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--bg);border:1px solid var(--border2);color:var(--text2)}
-.use-chip b{color:var(--text);margin-right:2px}
-.use-chip.u-yes{border-color:var(--green);color:var(--green)}.use-chip.u-maybe{border-color:var(--amber);color:var(--amber)}.use-chip.u-no{border-color:var(--red);color:var(--red)}.use-chip.u-nf{color:var(--text3)}.use-chip.u-pend{border-style:dashed;color:var(--text2)}
 #sel-bar{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:min(100%,560px);z-index:60;background:var(--bg);border-top:0.5px solid var(--border2);box-shadow:0 -6px 20px rgba(0,0,0,.12);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;transition:transform .2s;border-radius:14px 14px 0 0}
 #sel-bar.show{transform:translate(-50%,0)}
 #sel-n{font-size:12px;font-weight:700;color:var(--text2)}
 .sel-btns{display:flex;gap:6px}
 .sel-btns button{flex:1;padding:11px 2px;font-size:13px;font-weight:700;border:1.5px solid var(--border2);border-radius:12px;background:var(--bg);color:var(--text2);cursor:pointer;font-family:inherit}
 .sel-btns button:disabled{opacity:.4}
-.sel-btns .su-yes{border-color:var(--green);color:var(--green)}.sel-btns .su-maybe{border-color:var(--amber);color:var(--amber)}.sel-btns .su-no{border-color:var(--red);color:var(--red)}
+.sel-btns .su-yes{border-color:var(--green);color:var(--green)}
 .sel-btns .su-done{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .sel-help{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:-4px 2px 10px;font-size:12px;color:var(--text3)}
 .sel-help button.on{background:var(--grad);color:#fff;border-color:transparent}
@@ -422,7 +402,6 @@ body.desk #ideal-container{display:block}
 body.sel-open{padding-bottom:150px}
 .use-box{margin:10px 0 4px;padding:10px 12px;border:0.5px solid var(--border2);border-radius:12px;background:var(--bg2)}
 .use-box .use-hd{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px}
-.use-box .use-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 
 /* ── Design 2: minimal ─────────────────────────────────────────────
    Look only: tokens above + the rules below. No markup or behaviour is changed. */
@@ -455,9 +434,9 @@ html,body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text','Se
 .btn-sm{border-color:var(--border2)}
 .field-input,.time-field input[type=time]{border:1px solid transparent;background:var(--bg2);border-radius:12px}
 .field-input:focus,.time-field input[type=time]:focus{border-color:var(--accent);background:var(--bg)}
-.field-label,.shcell,.time-field label,.stat-lbl,.int-lbl{letter-spacing:0.08em}
-.sub-tab,.vb,.ptype-btn{border:1px solid transparent;background:var(--bg2);color:var(--text2);border-radius:999px;font-weight:600}
-.sub-tab.on-all,.vb.on,.ptype-btn.on{background:var(--accent-bg);color:var(--accent-txt);border-color:var(--accent)}
+.field-label,.shcell,.time-field label,.int-lbl{letter-spacing:0.08em}
+.sub-tab,.vb{border:1px solid transparent;background:var(--bg2);color:var(--text2);border-radius:999px;font-weight:600}
+.sub-tab.on-all,.vb.on{background:var(--accent-bg);color:var(--accent-txt);border-color:var(--accent)}
 .sub-tab.on-work{background:var(--amber-light);color:var(--amber);border-color:transparent}
 .sub-tab.on-life{background:var(--teal-light);color:var(--teal);border-color:transparent}
 body.desk .vb.on{background:var(--accent-bg);color:var(--accent-txt);border-color:transparent}
@@ -484,8 +463,6 @@ body.desk .vb.on{background:var(--accent-bg);color:var(--accent-txt);border-colo
 .sheet-wrap{background:rgba(17,17,19,0.45);backdrop-filter:blur(3px)}
 .sheet{border-radius:26px 26px 0 0;background:var(--bg3)}
 .sheet-hdr{font-weight:700;letter-spacing:-0.02em}
-.stat{border-radius:14px}
-.prog{height:5px}
 #toast{border-radius:999px;font-weight:600}
 .type-pop{border-radius:14px}
 #sel-bar{border-radius:20px 20px 0 0;border:1px solid var(--border);border-bottom:none}
@@ -506,8 +483,8 @@ html,body{background:var(--page);background-attachment:fixed}
 .btn-primary,.apply-btn{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(130,110,255,0.30)}
 .btn-primary:active,.apply-btn:active{background:var(--grad);filter:brightness(.94)}
 .btn-secondary{border-color:rgba(107,123,255,0.45);color:var(--accent-txt);background:var(--bg)}
-.sub-tab,.vb,.ptype-btn{background:rgba(255,255,255,0.75);border:1px solid rgba(107,123,255,0.14);color:var(--text2)}
-.sub-tab.on-all,.vb.on,.ptype-btn.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(130,110,255,0.28)}
+.sub-tab,.vb{background:rgba(255,255,255,0.75);border:1px solid rgba(107,123,255,0.14);color:var(--text2)}
+.sub-tab.on-all,.vb.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(130,110,255,0.28)}
 .sub-tab.on-work{background:var(--grad-work);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(255,126,95,0.30)}
 .sub-tab.on-life{background:var(--grad-life);color:#fff;border-color:transparent;box-shadow:0 5px 14px rgba(18,170,160,0.28)}
 body.desk .vb.on{background:var(--accent-bg);color:var(--accent-txt);box-shadow:none}
@@ -533,20 +510,17 @@ body.desk .vb.on{background:var(--accent-bg);color:var(--accent-txt);box-shadow:
 .rv-done.on{background:var(--green-bg);color:var(--green)}
 .info-bar{background:var(--accent-bg);color:var(--accent-txt)}
 .use-box{background:linear-gradient(135deg,var(--accent-bg),var(--purple-bg));border-color:transparent}
-.use-chip{background:rgba(255,255,255,0.9)}
 .od-card{background:linear-gradient(135deg,var(--red-bg),var(--amber-bg));border-color:var(--red-border)}
 .mc-d.s{background:var(--grad)}
-.stat{background:var(--accent-bg)}
 .sheet{background:var(--bg3)}
 #sel-bar{box-shadow:0 -10px 30px rgba(107,123,255,0.18)}
 .sel-btns .su-done{background:var(--grad);border-color:transparent;color:#fff}
 .use-box .rv-done{background:#fff;color:var(--accent-txt);border:1px solid rgba(107,123,255,0.25)}
 @media(prefers-color-scheme:dark){
-  .sub-tab,.vb,.ptype-btn{background:var(--bg2);border-color:var(--border)}
+  .sub-tab,.vb{background:var(--bg2);border-color:var(--border)}
   .card,.time-card,.scard,.tog-bar{border-color:var(--border)}
   .int-work{background:linear-gradient(90deg,#241c0f,var(--bg) 45%)}
   .int-life{background:linear-gradient(90deg,#0f2422,var(--bg) 45%)}
-  .use-chip{background:var(--bg)}
   .period-lbl.post{background:#3a1d2a!important;color:#ff8fb3!important}
   .use-box{background:var(--bg2)}
   .use-box .rv-done{background:var(--bg);border-color:var(--border2)}
@@ -613,7 +587,6 @@ body{background:transparent}
 .rv-chip{box-shadow:0 2px 6px rgba(90,100,200,0.08);transition:transform .12s}
 .rv-chip:active{transform:scale(.9)}
 .use-box{padding:14px 16px}
-.use-chip{border-radius:999px;font-weight:600}
 /* sheets, bars, misc */
 .sheet{border-radius:30px 30px 0 0;background:var(--bg3);box-shadow:var(--shadow-md)}
 .sheet-wrap{backdrop-filter:blur(6px)}
@@ -645,7 +618,7 @@ body{color:var(--ink)}
 .card.k-work{border-top:3px solid var(--work-2)}
 .card.k-life{border-top:3px solid var(--life-2)}
 .card.k-work,.card.k-life{border-top-left-radius:22px;border-top-right-radius:22px}
-.dn-main{color:var(--ink)}.dn-sub,.dn-tag{color:var(--accent-txt);font-weight:600}
+.dn-main{color:var(--ink)}.dn-sub{color:var(--accent-txt);font-weight:600}
 .field-lbl,.time-field label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
 /* section headers: pill with coloured dot */
 .period-lbl{background:var(--glass)!important;border:1px solid var(--glass-bd);box-shadow:0 2px 8px rgba(90,100,200,.07);padding:6px 12px 6px 10px!important;border-radius:999px!important;margin:20px 0 10px!important;font-size:10.5px!important;letter-spacing:.1em!important;font-weight:800!important}
@@ -668,8 +641,6 @@ body{color:var(--ink)}
 .use-btn{font-size:9.5px;padding:3px 9px}
 .use-btn.u-nf{opacity:.45;border-style:dashed}
 .use-btn.u-yes{background:linear-gradient(135deg,#e5f9ec,#d2f4df);border-color:#34c77b;color:#0f8a4c}
-.use-btn.u-maybe{background:linear-gradient(135deg,#fff4dc,#ffe9bd);border-color:#f5b02e;color:#a15c00}
-.use-btn.u-no{background:linear-gradient(135deg,#ffe8e8,#ffd6d6);border-color:#f26d6d;color:#c62828}
 .ttag{font-weight:700}
 /* filter chips + selection */
 .sel-help{margin:2px 0 12px;gap:7px}
@@ -689,10 +660,7 @@ body{color:var(--ink)}
 /* end of day / use summary */
 .use-box{background:linear-gradient(135deg,rgba(107,123,255,.08),rgba(155,109,255,.08));}
 .use-hd{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-txt)}
-.use-chip.u-yes{background:#e5f9ec;color:#0f8a4c;border-color:#34c77b}
-.use-chip.u-maybe{background:#fff4dc;color:#a15c00;border-color:#f5b02e}
-.use-chip.u-no{background:#ffe8e8;color:#c62828;border-color:#f26d6d}
-@media(prefers-color-scheme:dark){.use-chip.u-yes{background:#0f2a1c;color:#6ee7a0}.use-chip.u-maybe{background:#2d2310;color:#fcd34d}.use-chip.u-no{background:#2d1414;color:#fca5a5}.use-btn.u-yes{background:#0f2a1c;color:#6ee7a0}.use-btn.u-maybe{background:#2d2310;color:#fcd34d}.use-btn.u-no{background:#2d1414;color:#fca5a5}}
+@media(prefers-color-scheme:dark){.use-btn.u-yes{background:#0f2a1c;color:#6ee7a0}}
 /* overdue */
 .od-card{border:1px solid rgba(239,68,68,.25);background:linear-gradient(135deg,rgba(255,236,236,.85),rgba(255,247,240,.85))}
 @media(prefers-color-scheme:dark){.od-card{background:linear-gradient(135deg,rgba(60,22,22,.7),rgba(40,26,20,.7))}}
@@ -731,8 +699,7 @@ body{color:var(--ink)}
 #ged-detail{font-size:15.5px;line-height:1.6;border-radius:18px;background:rgba(107,123,255,.04)}
 #ged-title{font-size:20px;font-weight:800;letter-spacing:-.03em}
 /* settings sheet */
-.sheet h2,.sheet-title{font-weight:800;letter-spacing:-.03em}
-.card .hint,.card .note{line-height:1.5}
+.sheet h2{font-weight:800;letter-spacing:-.03em}
 /* tabular numerals & small details */
 .dn-sub{letter-spacing:.01em}
 .hdr-name{font-size:19px}
@@ -758,16 +725,10 @@ body{color:var(--ink)}
 
 /* time review card */
 .use-box{padding:16px 18px;border-radius:22px}
-.use-big{display:flex;align-items:baseline;gap:6px;margin:6px 0 8px}
-.use-big b{font-size:34px;font-weight:800;letter-spacing:-.04em;color:var(--green)}
-.use-big span{font-size:20px;font-weight:700;color:var(--ink3)}
-.use-big small{font-size:12px;font-weight:700;color:var(--ink3);margin-left:4px;text-transform:uppercase;letter-spacing:.08em}
 .use-bar{height:8px;border-radius:99px;background:rgba(107,123,255,.12);overflow:hidden;margin-bottom:10px}
 .use-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#34d3b0,#22c55e)}
-.use-sub{font-size:12.5px;color:var(--ink2);margin-bottom:8px}.use-sub b{color:var(--ink)}
 .use-btns{display:flex;flex-wrap:wrap;gap:8px}
 .use-btns .rv-done{margin-top:0;flex:1 1 auto;justify-content:center}
-.use-sched{margin:6px 0 14px;background:var(--glass);border:1px solid var(--glass-bd);box-shadow:var(--lift)}
 #sel-bar .su-yes{border-color:#34c77b;color:#0f8a4c}
 
 /* summary */
@@ -799,6 +760,17 @@ body{color:var(--ink)}
 .sum-x{font-size:12.5px;color:var(--ink2);padding:3px 14px 3px 38px;white-space:pre-wrap}.sum-x b{color:var(--ink);font-weight:700}
 body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opacity:.5;transition:opacity .15s}
 .sum-load{text-align:center;color:var(--ink3);font-size:12px;padding:12px}
+/* energised / didn't energise */
+.en-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+@media(min-width:700px){.en-grid{grid-template-columns:1fr 1fr}}
+.en-box{border-radius:16px;padding:10px 12px;border:1px solid transparent}
+.en-box.en-yes{background:rgba(52,211,176,.10);border-color:rgba(18,170,160,.25)}
+.en-box.en-no{background:rgba(255,179,71,.12);border-color:rgba(255,126,95,.28)}
+.en-hd{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.en-yes .en-hd{color:#0f8f84}.en-no .en-hd{color:#c2570c}
+.en-box .sta{min-height:44px}
+.safe-row{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:8px;border-radius:14px;background:rgba(107,123,255,.07)}
+.safe-row>div{flex:1;min-width:0}.safe-row b{display:block;font-size:13px;color:var(--ink)}.safe-row small{font-size:11.5px;color:var(--ink3);line-height:1.4}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -969,6 +941,8 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
         <div class="card-title"><i class="ti ti-table-export"></i> Export to Google Sheets</div>
         <div class="field-label">Apps Script URL</div>
         <input class="field-input" id="sheet-url" type="url" placeholder="https://script.google.com/.../exec" onchange="saveSheetSettings()"/>
+        <div class="field-label">Access key (from your Apps Script)</div>
+        <input class="field-input" id="sheet-key" type="password" autocomplete="off" placeholder="Optional but recommended" onchange="saveSheetSettings()"/>
         <div class="field-label">Sheet tab name</div>
         <input class="field-input" id="sheet-tab" type="text" value="Daily Log" onchange="saveSheetSettings()"/>
         <div class="field-label">Export from — to</div>
@@ -1000,7 +974,17 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
         <button class="btn-primary" id="bk-now" onclick="runBackup(true)"><i class="ti ti-cloud-upload"></i> Back up now</button>
         <button class="btn-secondary" onclick="restoreBackup('Planner Backup')"><i class="ti ti-restore"></i> Restore from backup</button>
         <button class="btn-sm" style="margin-top:8px" onclick="restoreBackup('Planner Backup (previous)')">Restore from the previous backup</button>
+        <div class="slp-sub" style="padding:12px 0 8px">A backup file on this device works without Google or the cloud:</div>
+        <button class="btn-secondary" onclick="downloadBackupFile()"><i class="ti ti-download"></i> Download a backup file</button>
+        <button class="btn-secondary" onclick="document.getElementById('bk-file').click()"><i class="ti ti-upload"></i> Restore from a backup file</button>
+        <input type="file" id="bk-file" accept="application/json,.json" style="display:none" onchange="restoreFromFile(this)"/>
         <div id="bk-msg"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-history"></i> Safety copies</div>
+        <div class="slp-sub" style="padding:0 0 10px">If a day was ever replaced or shortened (for example after editing on two devices), the older version is kept here so you can put it back.</div>
+        <button class="btn-secondary" onclick="loadSafety()"><i class="ti ti-list-search"></i> Show safety copies</button>
+        <div id="safe-list"></div>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-star"></i> Ideal day</div>
@@ -1035,7 +1019,7 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
 </div>
 
 <script>
-const BUILD='v10.1 — 21 Oct 2026';
+const BUILD='v10.5 — 22 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -1109,18 +1093,20 @@ function normIntent(o){
   return{work:normPts(o.work,o.work,o.workStatus),life:normPts(o.life,o.life,o.lifeStatus),
     workExtra:normList(o.workExtra,str('workExtra')||str('extra')),lifeExtra:normList(o.lifeExtra,str('lifeExtra')),
     workSummary:str('workSummary')||str('summary'),lifeSummary:str('lifeSummary'),
+    workEnergy:str('workEnergy'),workDrain:str('workDrain'),lifeEnergy:str('lifeEnergy'),lifeDrain:str('lifeDrain'),
     workReviewed:o.workReviewed===true,lifeReviewed:o.lifeReviewed===true,slotsReviewed:o.slotsReviewed===true};
 }
 function intentKeep(o){return intentHasContent(o)||!!(o&&(o.workReviewed||o.lifeReviewed||o.slotsReviewed));}   // worth saving to the cloud
 function intentHasContent(o){
   if(!o)return false;
   const L=k=>(o[k]||[]).some(p=>(p.t||'').trim());
-  return L('work')||L('life')||L('workExtra')||L('lifeExtra')||!!(String(o.workSummary||'').trim()||String(o.lifeSummary||'').trim());
+  return L('work')||L('life')||L('workExtra')||L('lifeExtra')||!!(String(o.workSummary||'').trim()||String(o.lifeSummary||'').trim()||['workEnergy','workDrain','lifeEnergy','lifeDrain'].some(k=>String(o[k]||'').trim()));
 }
 function loadIntentLocal(dk){try{return normIntent(JSON.parse(ls('tm_int_'+dk)||'null'));}catch(e){return normIntent({});}}
 let intent = normIntent({});  // {work,life,workStatus,lifeStatus,extra,summary} for the open day
 let eodOpen = false;
 let recRules=[],dirtyRec=false,fbRecT=null,recDays=new Set([1,2,3,4,5]);   // recurring slots
+const REV_ALL_FROM='2026-10-22';   // from this day on, the Work and Life end-of-day review is required even when there were no intentions
 const SLOT_REV_FROM='2026-10-14';   // days before this were never asked for it, so they don't show up as overdue
 const SLOT_FLT=[['all','All'],['yes','Well utilised'],['no','Not marked']];
 let slotFilter='all';
@@ -1134,7 +1120,7 @@ function wantDesk(){return window.innerWidth>=DESK_MIN&&ls('tm_view')!=='phone';
 document.body.classList.toggle('desk',wantDesk());
 if(document.body.classList.contains('desk')){document.body.classList.add('d-both');document.getElementById('sec-intent').classList.add('on');document.getElementById('mini-cal').dataset.on='1';}
 let sheetPushed=false,rvNote={},autoTried=false,deskTab='slots',calSel='',calY=0,calM=0;
-let periods=(()=>{try{const o=JSON.parse(ls('tm_periods')||'{}'),r={};Object.keys(o).forEach(k=>{r[k]=normPeriod(o[k]);});return r;}catch(e){return{};}})();
+let periods=(()=>{try{const o=JSON.parse(ls('tm_periods')||'{}'),r={};Object.keys(o).forEach(k=>{if(/^[wmy]:\d{4}-\d{2}(-\d{2})?$/.test(k))r[k]=normPeriod(o[k]);});return r;}catch(e){return{};}})();
 let remotePeriods={},periodDirty=new Set(),periodT=null;
 let goalType='week',goalView='all',goalCursor=null,goalReviewOpen=false,visionLast='intent';
 let intentTouched = null;  // day the user last edited intentions/review on (lets them clear an intent-only day)
@@ -1196,9 +1182,11 @@ function buildIdealSlots(){
 }
 
 // ── Storage ───────────────────────────────────────────────
+let lsWarned=false;
 function ls(k,v){
   if(v===undefined){try{return localStorage.getItem(k);}catch(e){return null;}}
-  try{localStorage.setItem(k,v);}catch(e){}
+  try{localStorage.setItem(k,v);}
+  catch(e){if(!lsWarned){lsWarned=true;try{toast('This phone\u2019s app storage is full, so offline copies may not be kept. Your cloud data is safe. Clearing old browser data for this site frees space.');}catch(e2){}}}
 }
 
 function dateKey(){
@@ -1267,6 +1255,7 @@ function writeDayNow(){
     return Promise.resolve();
   }
   const dayObj={slots:snapSlots,dayTimes:snapTimes,isHoliday:snapHol,date:dk,...(intentKeep(snapIntent)?{intent:snapIntent}:{})};
+  {const old=remoteDays[dk],oc=old?textCount(old):0,nc=textCount(dayObj);if(oc-nc>=3||(oc>=4&&nc<oc*0.5))archiveCopy(dk,old,'cloud copy before a save that removed much of it');}   // a big shrink is kept recoverable
   showSync('syncing');
   const FP=firebase.firestore.FieldPath;
   const wr=layout2
@@ -1305,8 +1294,9 @@ function dayFromDoc(data,dk){
   return data['days.'+dk]||null;
 }
 function mergedDays(data){
-  const out={...((data&&data.days)||{})};
-  if(data)Object.keys(data).forEach(k=>{if(k.startsWith('days.'))out[k.slice(5)]=data[k];});
+  const out={},add=(k,v)=>{if(/^\d{4}-\d{2}-\d{2}$/.test(k)&&v&&typeof v==='object')out[k]=v;};
+  Object.keys((data&&data.days)||{}).forEach(k=>add(k,data.days[k]));
+  if(data)Object.keys(data).forEach(k=>{if(k.startsWith('days.'))add(k.slice(5),data[k]);});
   return out;
 }
 
@@ -1418,7 +1408,7 @@ function applyRemote(d){
   const dk=dateKey();
   const dayData=dayFromDoc(d,dk);
   if(dayData){
-    const inSlots=dayData.slots||{};
+    const inSlots=JSON.parse(JSON.stringify(dayData.slots||{}));   // own copy: edits must never change the cached cloud copy
     const inIntent=normIntent(dayData.intent);
     const inTimes=dayData.dayTimes?{...DEF,...dayData.dayTimes}:dayTimes;
     const inHol=dayData.isHoliday!==undefined?!!dayData.isHoliday:isHoliday;
@@ -1431,9 +1421,10 @@ function applyRemote(d){
     // (app killed mid-debounce, offline, crash). Local is newer — push it up
     // instead of letting the stale cloud copy revert the edit.
     if(unsyncedAt(dk)){
-      if(remoteIsNewer(dk,dayData)){ls('tm_unsynced_'+dk,'');}   // newer save from another device wins; the outgoing copy is backed up just below
+      if(remoteIsNewer(dk,dayData)){archiveCopy(dk,{slots,intent,dayTimes,isHoliday},'this device\u2019s unsaved edit, replaced by a newer save from another device');ls('tm_unsynced_'+dk,'');}   // newer save from another device wins; our copy is kept as a safety copy
       else{
         ls('tm_bak_'+dk,JSON.stringify(inSlots)); // keep the cloud copy recoverable
+        archiveCopy(dk,{slots:inSlots,intent:inIntent,dayTimes:inTimes,isHoliday:inHol},'cloud copy replaced by this device\u2019s newer edit');
         dirty=true;syncDay();
         return;
       }
@@ -1465,6 +1456,24 @@ function pruneLocal(){
   }catch(e){}
 }
 function daysCol(){return db.collection('time-mgmt').doc(uid).collection('days');}
+// Safety copies: whenever a version of a day is about to be replaced and could hold something the new one lacks,
+// the old version is kept in the cloud (ids start with "-", so the app never mistakes them for days).
+const archSent=new Set();
+function textCount(d){
+  let n=0;const sl=(d&&d.slots)||{};
+  Object.keys(sl).forEach(k=>{const x=sl[k];if(x&&(String(x.plan||'').trim()||String(x.done||'').trim()))n++;});
+  const it=normIntent(d&&d.intent);
+  ['work','life'].forEach(k=>{n+=it[k].filter(p=>p.t.trim()).length+it[k+'Extra'].filter(p=>p.t.trim()).length;['Summary','Energy','Drain'].forEach(f=>{if(String(it[k+f]||'').trim())n++;});});
+  return n;
+}
+function archiveCopy(dk,copy,why){
+  try{
+    if(!uid||!db||!/^\d{4}-\d{2}-\d{2}$/.test(dk)||!copy||textCount(copy)===0)return;
+    const doc={date:dk,why:String(why||''),savedAt:Date.now(),slots:cleanSlots(copy.slots),dayTimes:copy.dayTimes||null,isHoliday:!!copy.isHoliday,intent:normIntent(copy.intent)};
+    const sig=dk+JSON.stringify([doc.slots,doc.intent]);if(archSent.has(sig))return;archSent.add(sig);
+    daysCol().doc('-'+dk+'~'+Date.now().toString(36)).set({...doc,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{archSent.delete(sig);});
+  }catch(e){}
+}
 async function ensureDay(dk){       // one older day, fetched on demand
   if(!layout2||!daysHydrated||!/^\d{4}-\d{2}-\d{2}$/.test(dk)||dk>=winStart())return;
   const s=await daysCol().doc(dk).get();dayChecked[dk]=true;     // always re-read: another device may have changed it since
@@ -1489,7 +1498,7 @@ function startDaysListener(){
   if(colUnsub||!uid)return;
   colUnsub=daysCol().where(firebase.firestore.FieldPath.documentId(),'>=',winStart()).onSnapshot(snap=>{
     const first=!daysHydrated;daysHydrated=true;hydrated=true;
-    const m={},pm={};snap.forEach(d=>{if(PKEY.test(d.id))pm[d.id]=d.data();else m[d.id]=d.data();});
+    const m={},pm={};snap.forEach(d=>{if(PKEY.test(d.id))pm[d.id]=d.data();else if(/^\d{4}-\d{2}-\d{2}$/.test(d.id))m[d.id]=d.data();});   // anything else (safety copies, junk) is not a day
     Object.keys(remoteDays).forEach(k=>{if(k<winStart()&&/^\d{4}-\d{2}-\d{2}$/.test(k))oldDays[k]=remoteDays[k];});   // keep older days already fetched or just written
     remoteDays=Object.assign({},oldDays,m);remotePcol=pm;pcolHydrated=true;
     mergePeriodsL2();
@@ -1500,7 +1509,6 @@ function startDaysListener(){
       if(dirtyIdeal)syncIdeal();
       if(periodDirty.size)schedulePeriodPush();
     }
-    renderLayoutBox();
   },err=>{
     console.error('[listenDays] Firestore listener error:',err.code,err.message);
     showSync('offline',`${err.code||''} ${err.message||''}`.trim());
@@ -1518,7 +1526,6 @@ function listenDay(){
         startDaysListener();
         mergePeriodsL2();
         if(daysHydrated)applyRemote(docView());
-        renderLayoutBox();
         return;
       }
       const firstHydration=!hydrated;
@@ -1667,6 +1674,7 @@ function bootApp(){
   lastAutoToday=today;
   document.getElementById('sheet-url').value=ls('tm_sheet_url')||'';
   document.getElementById('sheet-tab').value=ls('tm_sheet_tab')||'Daily Log';
+  document.getElementById('sheet-key').value=sheetKey();
   document.getElementById('exp-format').value=ls('tm_exp_fmt')||'both';
   document.getElementById('exp-from').value=today;
   document.getElementById('exp-to').value=today;
@@ -1840,12 +1848,12 @@ function onDateChange(){
       // clobbered by this read — previously only the re-render was skipped
       // while `slots` had already been replaced underneath the user.
       if(isTyping()||fbSaveT)return;
-      const inSlots=dayData.slots||{};
+      const inSlots=JSON.parse(JSON.stringify(dayData.slots||{}));   // own copy: edits must never change the cached cloud copy
       // Unsynced local edits from a previous session win — push, don't pull.
       const inIntent=normIntent(dayData.intent);
       if((JSON.stringify(inSlots)!==JSON.stringify(slots)||JSON.stringify(inIntent)!==JSON.stringify(intent))&&unsyncedAt(dk)){
-        if(remoteIsNewer(dk,dayData)){if(dayHasContent(slots))ls('tm_bak_'+dk,JSON.stringify(slots));ls('tm_unsynced_'+dk,'');}   // another device saved after this device's pending edit: take the cloud copy, keep ours as a backup
-        else{ls('tm_bak_'+dk,JSON.stringify(inSlots));dirty=true;syncDay();return;}
+        if(remoteIsNewer(dk,dayData)){if(dayHasContent(slots))ls('tm_bak_'+dk,JSON.stringify(slots));archiveCopy(dk,{slots,intent,dayTimes,isHoliday},'this device\u2019s unsaved edit, replaced by a newer save from another device');ls('tm_unsynced_'+dk,'');}   // another device saved after this device's pending edit: take the cloud copy, keep ours as a backup
+        else{ls('tm_bak_'+dk,JSON.stringify(inSlots));archiveCopy(dk,{slots:inSlots,intent:inIntent,dayTimes:dayData.dayTimes,isHoliday:!!dayData.isHoliday},'cloud copy replaced by this device\u2019s newer edit');dirty=true;syncDay();return;}
       }
       slots=inSlots;intent=inIntent;ls('tm_int_'+dk,JSON.stringify(intent));
       if(dayData.dayTimes)dayTimes={...DEF,...dayData.dayTimes};
@@ -1859,7 +1867,7 @@ function onDateChange(){
 // ── Type colours ──────────────────────────────────────────
 
 function tstyle(tp){const c=TCOLORS[tp];if(!c)return'';return`background:${c.bg};color:${c.fg};border-color:${c.bd}`;}
-function gtypes(s){if(Array.isArray(s.types))return s.types;if(s.type)return[s.type];return[];}
+function gtypes(s){const a=Array.isArray(s.types)?s.types:s.type?[s.type]:[];return a.filter(x=>typeof x==='string'&&Object.prototype.hasOwnProperty.call(TCOLORS,x));}   // only the known types (anything else from the cloud is ignored)
 // ── Time-slot review: was each slot used well? (yes / maybe / no) ──
 function slotHasContent(x){return !!(x&&(((x.plan||'').trim())||((x.done||'').trim())||x.skip));}
 function kindSlots(d){   // the work / life time slots of a day, from its own day times
@@ -2341,7 +2349,6 @@ function updIdeal(t,v){
 }
 
 // ── EOD ───────────────────────────────────────────────────
-function fmtHrs(mins){const h=Math.round(mins/6)/10;return h%1===0?String(h):h.toFixed(1);}
 function prevDayKey(dk){const d=new Date(dk+'T12:00:00');d.setDate(d.getDate()-1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
 function sleepMins(){
   const dk=dateKey();
@@ -2405,6 +2412,7 @@ function buildReviewRows(dk,d){
     it[k].forEach(p=>{if(p.t.trim()){out.push([date,cat,'Intention',p.t.trim(),STLBL[p.s]||'',(p.c||'').trim()]);if((p.d||'').trim())out.push([date,cat,'Intention detail',p.d.trim(),'','']);}});
     it[k+'Extra'].forEach(p=>{if(p.t.trim())out.push([date,cat,'Other thing done',p.t.trim(),'','']);});
     const sm=(it[k+'Summary']||'').trim();if(sm)out.push([date,cat,'Summary',sm,'','']);
+    const en=(it[k+'Energy']||'').trim(),dr=(it[k+'Drain']||'').trim();if(en)out.push([date,cat,'Energised me',en,'','']);if(dr)out.push([date,cat,'Did not energise me',dr,'','']);
     if(it[k+'Reviewed'])out.push([date,cat,'Review','Done','','']);
   });
   return out;
@@ -2492,7 +2500,7 @@ async function exportSheets(mode){
     let allOk=true;
     for(const j of jobs){
       j.rows=j.rows.map(r=>r.map(safe));
-      const r=await fetch(url,{method:'POST',body:JSON.stringify(j),headers:{'Content-Type':'text/plain;charset=utf-8'}});
+      const r=await fetch(url,{method:'POST',body:JSON.stringify({...j,key:sheetKey()}),headers:{'Content-Type':'text/plain;charset=utf-8'}});
       const txt=(await r.text()).trim();
       if(!(r.ok&&txt.startsWith('success')))allOk=false;   // the script answers HTTP 200 even for "error: ..."
     }
@@ -2543,24 +2551,16 @@ function updateCloudSize(){
   const pct=Math.round(n/1048576*100);
   el.innerHTML=`Cloud storage used by your days: ~${Math.round(n/1024)} KB of 1,024 KB (${pct}%)`+(pct>=70?` — <b style="color:var(--red)">getting full</b>`:'');
 }
-function renderLayoutBox(){
-  const el=document.getElementById('layout-box');if(!el)return;
-  if(!hydrated){el.innerHTML='<div class="slp-sub">Loading…</div>';return;}
-  if(layout2){el.innerHTML='<div class="msg ok" style="margin:0 0 8px">Upgraded: each day, week, month and year is saved as its own file, so there is no shared size limit. The old single-file copy is kept untouched as a backup.</div>';updateCloudSize();return;}
-  el.innerHTML=`<div class="slp-sub" style="padding:0 0 10px">Right now every day is stored in one cloud file with a 1 MB limit. Upgrading copies each day into its own file. Nothing is deleted or changed, and every copy is checked before the app switches.</div>
-    <button class="btn-primary" id="layout-btn" onclick="upgradeCloud()"><i class="ti ti-cloud-up"></i> Check &amp; upgrade</button>`;
-}
 function canon(o,skip){if(Array.isArray(o))return o.map(x=>canon(x,skip));if(o&&typeof o==='object'){const r={};Object.keys(o).sort().forEach(k=>{if(k!==skip)r[k]=canon(o[k],skip);});return r;}return o;}
 function dayEq(a,b){
   const f=d=>JSON.stringify(canon({slots:d.slots||{},dayTimes:d.dayTimes||null,isHoliday:!!d.isHoliday,intent:normIntent(d.intent)}));
   return f(a)===f(b);
 }
-let lastMig='';
-function setMig(msg,cls){lastMig=msg||'';const e=document.getElementById('layout-msg');if(e)e.innerHTML=msg?`<div class="msg ${cls||'ok'}">${esc(msg)}</div>`:'';}
+function setMig(msg,cls){if(msg&&cls==='err')console.warn('[upgrade]',msg);}   // the upgrade runs by itself; problems only go to the console
 async function upgradeCloud(auto){
   if(migBusy||!uid||!hydrated||layout2)return;
   if(!auto&&!confirm('Upgrade cloud storage?\n\nThis COPIES every day into its own cloud file and checks each copy. Your current data is not changed or deleted.\n\nTip: run "Export all days" to Google Sheets first for an extra backup.\n\nContinue?'))return;
-  migBusy=true;const btn=document.getElementById('layout-btn');if(btn)btn.disabled=true;
+  migBusy=true;
   try{
     setMig('Saving pending edits…');
     await flushSave();
@@ -2586,7 +2586,7 @@ async function upgradeCloud(auto){
     await ref.set({layout:2,layoutAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
     setMig(`Done: ${keys.length} day${keys.length===1?'':'s'} copied and verified.`);
   }catch(e){setMig('Upgrade stopped: '+((e&&(e.message||e.code))||'unknown error')+'. Your data is unchanged.','err');}
-  finally{migBusy=false;const b2=document.getElementById('layout-btn');if(b2)b2.disabled=false;}
+  finally{migBusy=false;}
 }
 // Cloud storage upgrade now runs by itself, once per app load, after the cloud data has loaded. It only COPIES days and verifies every copy before switching; any problem leaves the data as it was.
 function autoUpgrade(){if(autoTried||!uid||!hydrated||layout2||migBusy||isTyping())return;autoTried=true;upgradeCloud(true);}
@@ -2599,7 +2599,7 @@ function normRec(r){
   const t=String(r.t||'').trim().slice(0,120),ok=v=>/^([01]\d|2[0-3]):[0-5]\d$/.test(v||'');
   const d=[...new Set((Array.isArray(r.d)?r.d:[]).map(Number).filter(n=>n>=0&&n<=6))].sort();
   if(!t||!ok(r.s)||!(ok(r.e)||r.e==='24:00')||!d.length)return null;
-  return{id:String(r.id||('r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))),t,s:r.s,e:r.e,d,f:/^\d{4}-\d{2}-\d{2}$/.test(r.f||'')?r.f:ymd(new Date()),p:!!r.p};
+  return{id:/^[\w-]{1,40}$/.test(String(r.id||''))?String(r.id):('r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),t,s:r.s,e:r.e,d,f:/^\d{4}-\d{2}-\d{2}$/.test(r.f||'')?r.f:ymd(new Date()),p:!!r.p};
 }
 function loadRec(){try{const a=JSON.parse(ls('tm_rec')||'[]');recRules=(Array.isArray(a)?a:[]).map(normRec).filter(Boolean);}catch(e){recRules=[];}}
 function saveRec(){ls('tm_rec',JSON.stringify(recRules));ls('tm_rec_unsynced','1');dirtyRec=true;syncRec();}
@@ -2669,7 +2669,7 @@ function recDel(id){
   renderRecBox();
 }
 
-function openSettings(){renderRecBox();renderLockBox();updateCloudSize();renderLayoutBox();updateViewUi();bkStatus();document.getElementById('settings').classList.add('open');}
+function openSettings(){renderRecBox();renderLockBox();updateCloudSize();updateViewUi();bkStatus();document.getElementById('settings').classList.add('open');}
 function closeSettings(){const el=document.getElementById('settings');if(el)el.classList.remove('open');}
 
 // ── Priority intentions + end-of-day review ───────────────
@@ -2809,19 +2809,19 @@ function sumOpen(type,key){
   else{goalType=type;goalCursor=key;goalReviewOpen=false;showTab('goals');}
 }
 function sumEntries(){   // [{type,key,start:'YYYY-MM-DD',main,sub,items:{work:[],life:[]}}]
-  const out=[],has=it=>['work','life'].some(k=>it[k].some(p=>p.t.trim())||(it[k+'Extra']||[]).some(p=>p.t.trim())||(it[k+'Summary']||'').trim());
+  const out=[],has=it=>['work','life'].some(k=>it[k].some(p=>p.t.trim())||(it[k+'Extra']||[]).some(p=>p.t.trim())||(it[k+'Summary']||'').trim()||(it[k+'Energy']||'').trim()||(it[k+'Drain']||'').trim());
   const dks=new Set([...Object.keys(remoteDays||{}),dateKey()]);
   try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('tm_int_'))dks.add(k.slice(7));}}catch(e){}
   dks.forEach(dk=>{
     if(!/^\d{4}-\d{2}-\d{2}$/.test(dk))return;
     const d=dayDataFor(dk);if(!d)return;const it=normIntent(d.intent);if(!has(it))return;
     const [y,m,dd]=dk.split('-').map(Number);
-    out.push({type:'day',key:dk,start:dk,main:new Date(y,m-1,dd).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}),sub:String(y),items:{work:it.work,life:it.life},extra:{work:it.workExtra,life:it.lifeExtra},summ:{work:it.workSummary,life:it.lifeSummary}});
+    out.push({type:'day',key:dk,start:dk,main:new Date(y,m-1,dd).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}),sub:String(y),items:{work:it.work,life:it.life},extra:{work:it.workExtra,life:it.lifeExtra},summ:{work:it.workSummary,life:it.lifeSummary},en:{work:it.workEnergy,life:it.lifeEnergy},dr:{work:it.workDrain,life:it.lifeDrain}});
   });
   Object.keys(periods).forEach(key=>{
-    const P=periods[key];if(!P||!['work','life'].some(k=>P[k].g.some(p=>p.t.trim())))return;
+    const P=periods[key];if(!P||!['work','life'].some(k=>P[k].g.some(p=>p.t.trim())||P[k].en.trim()||P[k].dr.trim()))return;
     const lab=periodLabel(key);
-    out.push({type:keyType(key),key,start:periodStartYmd(key),main:lab.main,sub:lab.sub,items:{work:P.work.g,life:P.life.g}});
+    out.push({type:keyType(key),key,start:periodStartYmd(key),main:lab.main,sub:lab.sub,items:{work:P.work.g,life:P.life.g},en:{work:P.work.en,life:P.life.en},dr:{work:P.work.dr,life:P.life.dr}});
   });
   return out.sort((a,b)=>a.start<b.start?1:a.start>b.start?-1:0);
 }
@@ -2829,11 +2829,11 @@ const SUM_IC={done:'ti-check',partial:'ti-minus',missed:'ti-x'};
 function sumRow(e){
   const kinds=sumView==='all'?['work','life']:[sumView];let n={done:0,partial:0,missed:0,open:0},body='';
   kinds.forEach(k=>{
-    const L=e.items[k].filter(p=>p.t.trim()),X=((e.extra||{})[k]||[]).filter(p=>p.t.trim()),M=String((e.summ||{})[k]||'').trim();if(!L.length&&!X.length&&!M)return;
+    const L=e.items[k].filter(p=>p.t.trim()),X=((e.extra||{})[k]||[]).filter(p=>p.t.trim()),M=String((e.summ||{})[k]||'').trim(),EN=String((e.en||{})[k]||'').trim(),DR=String((e.dr||{})[k]||'').trim();if(!L.length&&!X.length&&!M&&!EN&&!DR)return;
     body+=`<div class="sum-k k-${k}">${KMETA[k].lbl}</div>`+L.map(p=>{
       const st=PT_ST.includes(p.s)&&p.s?p.s:'';n[st||'open']++;
       return`<div class="sum-it st-${st||'open'}"><i class="ti ${SUM_IC[st]||'ti-circle'}"></i><span><span class="sum-t">${esc(p.t)}</span>${sinceTag(p)}${(p.c||'').trim()?`<em class="sum-cm">${esc(p.c.trim())}</em>`:''}</span></div>`;}).join('')
-      +(X.length?`<div class="sum-x"><b>Also did:</b> ${X.map(p=>esc(p.t)).join(' · ')}</div>`:'')+(M?`<div class="sum-x"><b>Summary:</b> ${esc(M)}</div>`:'');
+      +(X.length?`<div class="sum-x"><b>Also did:</b> ${X.map(p=>esc(p.t)).join(' · ')}</div>`:'')+(M?`<div class="sum-x"><b>Summary:</b> ${esc(M)}</div>`:'')+(EN?`<div class="sum-x"><b>Energised me:</b> ${esc(EN)}</div>`:'')+(DR?`<div class="sum-x"><b>Didn\u2019t energise me:</b> ${esc(DR)}</div>`:'');
   });
   if(!body)return'';
   const bits=[n.done&&`${n.done} done`,n.partial&&`${n.partial} partly`,n.missed&&`${n.missed} missed`,n.open&&`${n.open} open`].filter(Boolean).join(' · ');
@@ -2857,13 +2857,22 @@ function renderSummary(){
 
 function toggleReviewed(kind){const k=kind+'Reviewed';intent[k]=!intent[k];dirty=true;intentTouched=loadedDk;save();renderDayTop();updateOverdueBadge();}
 function eodSection(kind){const on=!!intent[kind+'Reviewed'];return eodSectionBody(kind)+`<button class="rv-done${on?' on':''}" onclick="toggleReviewed('${kind}')"><i class="ti ti-circle-check"></i> ${on?'Review done':'Mark review done'}</button>`;}
+// "What energised me" / "What didn't energise me": two separate boxes next to the general notes, in every review
+function energyHtml(enVal,drVal,onEn,onDr,blur){
+  const box=(cls,ic,lbl,ph,val,fn)=>`<div class="en-box ${cls}"><div class="en-hd"><i class="ti ${ic}"></i> ${lbl}</div><textarea class="sta" rows="2" maxlength="1200" placeholder="${ph}" oninput="${fn}(this.value);autoGrow(this)"${blur?` onblur="${blur}"`:''}>${esc(val||'')}</textarea></div>`;
+  return`<div class="en-grid">`
+    +box('en-yes','ti-bolt','What energised me','Moments, people or work that gave you energy…',enVal,onEn)
+    +box('en-no','ti-bolt-off','What didn\u2019t energise me','What drained you or felt flat…',drVal,onDr)
+    +`</div>`;
+}
 function eodSectionBody(kind){
   const m=KMETA[kind];
   return`<div class="eod-sec k-${kind}"><i class="ti ${m.ic}"></i> ${m.lbl}</div>`
     +useEodHtml(kind)
     +reviewGroup(kind)
     +`<div class="rv-sub">Also did</div><div class="rv-list rv-${kind}">${ptList(kind+'Extra','Something else you got done…','Next one…')}</div>`
-    +`<div class="eod-box"><textarea class="sta" rows="2" maxlength="1500" placeholder="${kind==='work'?'Work summary: wins, blockers, carry-forward…':'Life summary: how was the rest of your day?'}" oninput="updIntent('${kind}Summary',this.value);autoGrow(this)" onblur="save()">${esc(intent[kind+'Summary'])}</textarea></div>`;
+    +`<div class="eod-box"><textarea class="sta" rows="2" maxlength="1500" placeholder="${kind==='work'?'Work summary: wins, blockers, carry-forward…':'Life summary: how was the rest of your day?'}" oninput="updIntent('${kind}Summary',this.value);autoGrow(this)" onblur="save()">${esc(intent[kind+'Summary'])}</textarea></div>`
+    +energyHtml(intent[kind+'Energy'],intent[kind+'Drain'],`updIntent.bind(null,'${kind}Energy')`,`updIntent.bind(null,'${kind}Drain')`,'save()');
 }
 
 
@@ -2886,9 +2895,9 @@ function renderDayTop(){
 }
 
 // ── Goals: week / month / year plans for Work and Life ────
-function normPK(x){x=x||{};return{g:normPts(x.g),r:typeof x.r==='string'?x.r:'',d:x.d===true};}
+function normPK(x){x=x||{};return{g:normPts(x.g),r:typeof x.r==='string'?x.r:'',en:typeof x.en==='string'?x.en:'',dr:typeof x.dr==='string'?x.dr:'',d:x.d===true};}
 function normPeriod(o){o=o||{};return{work:normPK(o.work),life:normPK(o.life),u:Number(o.u)||0};}
-function pHas(P){return !!P&&['work','life'].some(k=>P[k].g.some(p=>p.t.trim())||P[k].r.trim());}
+function pHas(P){return !!P&&['work','life'].some(k=>P[k].g.some(p=>p.t.trim())||P[k].r.trim()||P[k].en.trim()||P[k].dr.trim());}
 function pGet(kind){if(!goalCursor)goalCursor=curKey(goalType,new Date());return(periods[goalCursor]||(periods[goalCursor]=normPeriod(null)))[kind];}
 function keyType(k){return k[0]==='w'?'week':k[0]==='m'?'month':'year';}
 // Keys: w:<Monday date> | m:<year>-<month> | y:<start year>-<start month>
@@ -2973,7 +2982,8 @@ async function pushPeriodsL2(){
   catch(e){showSync('offline',((e&&e.code)||'')+' '+((e&&e.message)||''));periodT=setTimeout(pushPeriods,10000);}
 }
 function mergeRemotePeriods(d){
-  const rp=(d&&d.periods)||{};remotePeriods={};let changed=false;
+  const rp0=(d&&d.periods)||{},rp={};Object.keys(rp0).forEach(k=>{if(PKEY.test(k)&&rp0[k]&&typeof rp0[k]==='object')rp[k]=rp0[k];});
+  remotePeriods={};let changed=false;
   Object.keys(rp).forEach(k=>{
     const r=normPeriod(rp[k]);remotePeriods[k]=r;const l=periods[k];
     if(!l||(r.u||0)>(l.u||0)){
@@ -2990,21 +3000,27 @@ function mergeRemotePeriods(d){
 // ── overdue reviews ──
 function overdueItems(){
   const out=[],t0=ymd(new Date());
-  new Set([...Object.keys(remoteDays||{}),dateKey()]).forEach(dk=>{
+  const dks=new Set([...Object.keys(remoteDays||{}),dateKey()]);
+  for(let c=new Date(+REV_ALL_FROM.slice(0,4),+REV_ALL_FROM.slice(5,7)-1,+REV_ALL_FROM.slice(8,10)),i=0;ymd(c)<t0&&i<800;c.setDate(c.getDate()+1),i++)dks.add(ymd(c));   // every day since the rule began, even if nothing was entered
+  dks.forEach(dk=>{
     if(!/^\d{4}-\d{2}-\d{2}$/.test(dk)||dk>=t0)return;            // a day is overdue from the next day
-    const d=dayDataFor(dk);if(!d)return;
+    const d=dayDataFor(dk)||(dk>=REV_ALL_FROM?{slots:{},isHoliday:ls('tm_hol_'+dk)==='1'}:null);if(!d)return;
     const it=normIntent(d.intent);
     ['work','life'].forEach(k=>{
       if(k==='work'&&d.isHoliday)return;
-      const intOver=!!d.intent&&it[k].some(p=>p.t.trim())&&!it[k+'Reviewed'];
+      const intOver=(dk>=REV_ALL_FROM||(!!d.intent&&it[k].some(p=>p.t.trim())))&&!it[k+'Reviewed'];
       if(intOver)out.push({type:'day',kind:k,key:dk,end:dk,slots:false});          // intentions and the time review are separate reviews
     });
     if(dk>=SLOT_REV_FROM&&dayHasContent(d.slots||{})&&!it.slotsReviewed)out.push({type:'day',kind:'all',key:dk,end:dk,slots:true});   // one time review per day
   });
-  Object.keys(periods).forEach(key=>{
-    const P=periods[key],end=ymd(periodRange(key).e);
+  const pks=new Set(Object.keys(periods));
+  for(let c=new Date(+REV_ALL_FROM.slice(0,4),+REV_ALL_FROM.slice(5,7)-1,+REV_ALL_FROM.slice(8,10)),i=0;ymd(c)<t0&&i<800;c.setDate(c.getDate()+1),i++)['week','month','year'].forEach(t=>pks.add(curKey(t,c)));   // every period since the rule began, even if empty
+  pks.forEach(key=>{
+    if(!/^[wmy]:\d{4}-\d{2}(-\d{2})?$/.test(key))return;
+    const P=periods[key]||normPeriod(null),end=ymd(periodRange(key).e);
     if(end>=t0)return;                                            // week/month/year: overdue from the day after it ends
-    ['work','life'].forEach(k=>{if(P[k].g.some(p=>p.t.trim())&&!P[k].d)out.push({type:keyType(key),kind:k,key,end});});
+    const req=end>=REV_ALL_FROM;                                  // from the rule's start the review is required even with nothing written
+    ['work','life'].forEach(k=>{if((req||P[k].g.some(p=>p.t.trim()))&&!P[k].d)out.push({type:keyType(key),kind:k,key,end});});
   });
   return out.sort((a,b)=>a.end<b.end?-1:a.end>b.end?1:0);
 }
@@ -3048,6 +3064,7 @@ function shiftPeriod(n){
   else{const[y,m]=goalCursor.slice(2).split('-').map(Number);goalCursor=`y:${y+n}-${pad(m)}`;}
   renderGoals();
 }
+function updPeriodField(kind,f,v){lastTypeAt=Date.now();pGet(kind)[f]=v;touchPeriod();}
 function updPeriodReview(kind,v){lastTypeAt=Date.now();pGet(kind).r=v;touchPeriod();}
 function togglePeriodDone(kind){const x=pGet(kind);x.d=!x.d;touchPeriod();renderGoals();}
 function buildGoalRows(key,P){
@@ -3056,6 +3073,8 @@ function buildGoalRows(key,P){
     const x=P[k];
     x.g.forEach(p=>{if(p.t.trim()){out.push([type,lab.main,dates,cat,'Vision',p.t.trim(),STLBL[p.s]||'',(p.c||'').trim()]);if((p.d||'').trim())out.push([type,lab.main,dates,cat,'Vision detail',p.d.trim(),'','']);}});
     if(x.r.trim())out.push([type,lab.main,dates,cat,'Review notes',x.r.trim(),'','']);
+    if(x.en.trim())out.push([type,lab.main,dates,cat,'Energised me',x.en.trim(),'','']);
+    if(x.dr.trim())out.push([type,lab.main,dates,cat,'Did not energise me',x.dr.trim(),'','']);
     if(x.d)out.push([type,lab.main,dates,cat,'Review','Done','','']);
   });
   return out;
@@ -3073,7 +3092,7 @@ function renderGoals(){
     return`<div class="card k-${k}"><div class="card-title"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} vision</div><div class="int-field int-${k}">${glList(k,0,`What do you want to achieve this ${noun}?`)}</div></div>`;}).join('');
   h+=`<button class="eod-btn${goalReviewOpen?' open':''}" onclick="toggleGoalReview()"><i class="ti ti-checklist"></i> Review <i class="ti ti-chevron-down eod-chev"></i></button>`;
   if(goalReviewOpen){
-    h+=kinds.map(k=>{const m=KMETA[k],x=pGet(k);return`<div class="card"><div class="eod-sec k-${k}"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} review</div>${reviewGroup('p:'+k)}<div class="eod-box" style="margin-top:12px"><textarea class="sta" rows="3" maxlength="1500" placeholder="How did this ${noun} go? Wins, lessons, what to carry forward…" oninput="updPeriodReview('${k}',this.value);autoGrow(this)">${esc(x.r)}</textarea></div><button class="rv-done${x.d?' on':''}" onclick="togglePeriodDone('${k}')"><i class="ti ti-circle-check"></i> ${x.d?'Review done':'Mark review done'}</button></div>`;}).join('');
+    h+=kinds.map(k=>{const m=KMETA[k],x=pGet(k);return`<div class="card"><div class="eod-sec k-${k}"><i class="ti ${m.ic}"></i> ${m.lbl} · ${noun} review</div>${reviewGroup('p:'+k)}<div class="eod-box" style="margin-top:12px"><textarea class="sta" rows="3" maxlength="1500" placeholder="How did this ${noun} go? Wins, lessons, what to carry forward…" oninput="updPeriodReview('${k}',this.value);autoGrow(this)">${esc(x.r)}</textarea></div>${energyHtml(x.en,x.dr,`updPeriodField.bind(null,'${k}','en')`,`updPeriodField.bind(null,'${k}','dr')`,'')}<button class="rv-done${x.d?' on':''}" onclick="togglePeriodDone('${k}')"><i class="ti ti-circle-check"></i> ${x.d?'Review done':'Mark review done'}</button></div>`;}).join('');
   }
   body.innerHTML=h;body.querySelectorAll('.sta').forEach(autoGrow);
 }
@@ -3083,16 +3102,29 @@ const BK_TAB='Planner Backup',BK_CHUNK=40000,bootAt=Date.now();
 let bkBusy=false;
 function sheetUrlOk(url){try{const u=new URL(url);return u.protocol==='https:'&&(u.hostname==='script.google.com'||u.hostname.endsWith('.script.google.com'));}catch(e){return false;}}
 function bkUrl(){return (ls('tm_sheet_url')||'').trim();}
+function sheetKey(){return (ls('tm_sheet_key')||'').trim().slice(0,200);}   // shared secret that must match ACCESS_KEY in the Apps Script
 function bkMsg(m,c){const e=document.getElementById('bk-msg');if(e)e.innerHTML=m?`<div class="msg ${c||'ok'}">${esc(m)}</div>`:'';}
 function bkStatus(){
   const e=document.getElementById('bk-status');if(!e)return;
   const at=ls('tm_bk_at'),n=ls('tm_bk_n');
   e.textContent=at?`Last backup: ${new Date(at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})} · ${n||0} days`:'No backup yet.';
+  if(ls('tm_sheet_open')==='1')e.textContent+=' · WARNING: your Sheet script has no access key, anyone with its link can read it. Set ACCESS_KEY in the script.';
   const c=document.getElementById('bk-auto');if(c)c.checked=ls('tm_bk_auto')!=='off';
+}
+// Only well-formed slots survive an import: keys like 11:00-11:30, plain objects, text fields as text.
+function cleanSlots(raw){
+  const out={};if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;
+  Object.keys(raw).forEach(k=>{
+    if(!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(k))return;const x=raw[k];if(!x||typeof x!=='object'||Array.isArray(x))return;
+    const o={plan:typeof x.plan==='string'?x.plan.slice(0,5000):'',done:typeof x.done==='string'?x.done.slice(0,5000):'',types:gtypes(x)};
+    if(x.skip===true)o.skip=true;if(x.use==='yes')o.use='yes';if(typeof x.rec==='string'&&/^[\w-]{1,40}$/.test(x.rec))o.rec=x.rec;
+    out[k]=o;
+  });
+  return out;
 }
 function normDayObj(dk,d){
   const dt={...DEF};['wake','workReach','workLeave','sleep'].forEach(k=>{if(d.dayTimes&&validTime(d.dayTimes[k]))dt[k]=d.dayTimes[k];});
-  const it=normIntent(d.intent),o={slots:(d.slots&&typeof d.slots==='object')?d.slots:{},dayTimes:dt,isHoliday:!!d.isHoliday,date:dk};
+  const it=normIntent(d.intent),o={slots:cleanSlots(d.slots),dayTimes:dt,isHoliday:!!d.isHoliday,date:dk};
   if(intentKeep(it))o.intent=it;
   return o;
 }
@@ -3126,12 +3158,77 @@ function parseBackupRows(rows){
     let o;try{o=JSON.parse(parts[k].sort((a,b)=>a[0]-b[0]).map(x=>x[1]).join(''));}catch(e){throw new Error('The backup is damaged ('+type+' '+key+').');}
     if(type==='meta')out.meta=o;else if(type==='ideal')out.ideal=o;else if(type==='recurring')out.recurring=o;
     else if(type==='day'&&/^\d{4}-\d{2}-\d{2}$/.test(key)&&o&&typeof o==='object')out.days[key]=normDayObj(key,o);
-    else if(type==='period'&&/^[wmy]:/.test(key)&&o&&typeof o==='object')out.periods[key]=normPeriod(o);
+    else if(type==='period'&&PKEY.test(key)&&o&&typeof o==='object')out.periods[key]=normPeriod(o);
   });
   return out;
 }
+
+// ── Backup file on the device (works without Google or the cloud) ──
+async function downloadBackupFile(){
+  if(!uid||!hydrated||(layout2&&!daysHydrated)){bkMsg('Your cloud data is still loading. Try again in a moment.','err');return;}
+  try{
+    bkMsg('Preparing the file…');await flushAll();await ensureAllDays();
+    const snap=backupSnapshot(),rows=backupRows(snap);
+    const blob=new Blob([JSON.stringify({app:'planner',v:1,at:new Date().toISOString(),rows})],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='planner-backup-'+ymd(new Date())+'.json';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+    bkMsg(`Saved a backup file: ${Object.keys(snap.days).length} days, ${Object.keys(snap.periods).length} week/month/year entries.`);
+  }catch(e){bkMsg('Could not make the file: '+(e&&e.message||'unknown error'),'err');}
+}
+async function restoreFromFile(inp){
+  const f=inp&&inp.files&&inp.files[0];if(inp)inp.value='';if(!f)return;
+  try{
+    if(f.size>30*1024*1024)throw new Error('That file is too large to be a Planner backup.');
+    const j=JSON.parse(await f.text());
+    if(!j||j.app!=='planner'||!Array.isArray(j.rows)||j.rows.length>400000||!j.rows.every(r=>Array.isArray(r)&&r.length<=8))throw new Error('That is not a Planner backup file.');
+    await restoreBackup('file',j.rows);
+  }catch(e){bkMsg((e&&e.message)||'Could not read that file.','err');}
+}
+
+// ── Safety copies: versions of a day that were replaced or shortened ──
+let safeItems=[];
+async function loadSafety(){
+  const el=document.getElementById('safe-list');if(!el)return;
+  if(!uid||!hydrated){el.innerHTML='<div class="slp-sub">Your cloud data is still loading.</div>';return;}
+  el.innerHTML='<div class="slp-sub">Loading…</div>';
+  safeItems=[];
+  try{
+    const FP=firebase.firestore.FieldPath.documentId();
+    const snap=await daysCol().where(FP,'>=','-').where(FP,'<','.').get();
+    snap.forEach(d=>{const x=d.data()||{};if(/^\d{4}-\d{2}-\d{2}$/.test(x.date||''))safeItems.push({id:d.id,date:x.date,at:Number(x.savedAt)||0,why:String(x.why||''),n:textCount(x),src:'cloud',doc:x});});
+  }catch(e){el.innerHTML='<div class="msg err">Could not read the safety copies. Check your connection.</div>';return;}
+  try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i),m=/^tm_bak_(\d{4}-\d{2}-\d{2})$/.exec(k||'');if(!m)continue;
+    const sl=cleanSlots(JSON.parse(localStorage.getItem(k)||'{}'));const x={slots:sl,intent:{},dayTimes:null,isHoliday:false};
+    if(textCount(x))safeItems.push({id:k,date:m[1],at:0,why:'older copy kept on this device',n:textCount(x),src:'local',doc:x});}}catch(e){}
+  safeItems.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.at-a.at);
+  renderSafety();
+}
+function renderSafety(){
+  const el=document.getElementById('safe-list');if(!el)return;
+  if(!safeItems.length){el.innerHTML='<div class="slp-sub" style="padding-top:10px">No safety copies yet. That means nothing has needed one.</div>';return;}
+  el.innerHTML=safeItems.slice(0,60).map((c,i)=>{
+    const [y,m,d]=c.date.split('-').map(Number),when=c.at?new Date(c.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
+    return`<div class="safe-row"><div><b>${esc(new Date(y,m-1,d).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'}))}</b><small>${esc(c.n+' entr'+(c.n===1?'y':'ies'))}${when?' · saved '+esc(when):''}<br>${esc(c.why)}</small></div><button class="btn-sm" onclick="restoreSafety(${i})">Put back</button></div>`;
+  }).join('');
+}
+async function restoreSafety(i){
+  const c=safeItems[i];if(!c)return;
+  if(!confirm(`Put this copy back as ${c.date}?\n\nWhat that day holds right now is kept as another safety copy, so nothing is lost.`))return;
+  try{
+    closeSettings();
+    document.getElementById('date-pick').value=c.date;onDateChange();
+    await ensureDay(c.date);
+    archiveCopy(c.date,{slots,intent,dayTimes,isHoliday},'version before a safety copy was put back');
+    const d=c.doc;
+    slots=cleanSlots(d.slots);intent=normIntent(d.intent);
+    if(d.dayTimes){const dt={...DEF};['wake','workReach','workLeave','sleep'].forEach(k=>{if(validTime(d.dayTimes[k]))dt[k]=d.dayTimes[k];});dayTimes=dt;}
+    isHoliday=!!d.isHoliday;dirty=true;intentTouched=c.date;
+    buildSlots();renderSched();renderDayTop();save();
+    toast('Put back. The version it replaced is kept as a safety copy.');
+  }catch(e){toast('Could not put it back: '+((e&&e.message)||'unknown error'));}
+}
 async function sheetRead(tab){
-  const r=await fetch(bkUrl()+(bkUrl().includes('?')?'&':'?')+'action=read&tab='+encodeURIComponent(tab));
+  const r=await fetch(bkUrl()+(bkUrl().includes('?')?'&':'?')+'action=read&tab='+encodeURIComponent(tab)+'&key='+encodeURIComponent(sheetKey()));
   const j=JSON.parse(await r.text());
   if(!j||!j.ok)throw new Error((j&&j.error)||'Could not read the sheet.');
   return j.rows||[];
@@ -3148,12 +3245,13 @@ async function runBackup(manual){
     await ensureAllDays();
     if(manual)bkMsg('Backing up…');
     let hello='';try{hello=await (await fetch(url)).text();}catch(e){throw new Error('Could not reach the Apps Script URL.');}
+    ls('tm_sheet_open',/no access key/i.test(hello)?'1':'');bkStatus();
     if(!/receiver v2/i.test(hello))throw new Error('Your Apps Script is the old version. Paste the new apps-script.gs from this update, then Deploy → Manage deployments → Edit → New version → Deploy. The URL stays the same.');
     const snap=backupSnapshot(),n=Object.keys(snap.days).length,last=Number(ls('tm_bk_n'))||0;
     if(last>=10&&n<last*0.5&&!(manual&&confirm(`This backup has ${n} days but the last one had ${last}. Replace it anyway?\n\nThe previous copy is kept as "${BK_TAB} (previous)".`)))
       throw new Error(`Skipped: today's data has ${n} days but the last backup had ${last}, so the backup was not replaced.`);
     const rows=backupRows(snap);
-    const r=await fetch(url,{method:'POST',body:JSON.stringify({tabName:BK_TAB,replace:true,rows}),headers:{'Content-Type':'text/plain;charset=utf-8'}});
+    const r=await fetch(url,{method:'POST',body:JSON.stringify({tabName:BK_TAB,replace:true,rows,key:sheetKey()}),headers:{'Content-Type':'text/plain;charset=utf-8'}});
     const txt=(await r.text()).trim();
     if(!(r.ok&&txt.startsWith('success')))throw new Error('The sheet did not accept the backup: '+txt.slice(0,120));
     // read it back and compare before calling it a success
@@ -3179,15 +3277,15 @@ function autoBackup(){
   runBackup(false);
 }
 setInterval(autoBackup,15000);
-async function restoreBackup(tab){
+async function restoreBackup(tab,fileRows){
   if(bkBusy||!uid||!hydrated||(layout2&&!daysHydrated)){bkMsg('Your cloud data is still loading. Try again in a moment.','err');return;}
-  if(!sheetUrlOk(bkUrl())){bkMsg('Paste your Apps Script URL in the export box above first.','err');return;}
+  if(!fileRows&&!sheetUrlOk(bkUrl())){bkMsg('Paste your Apps Script URL in the export box above first.','err');return;}
   bkBusy=true;
   try{
     bkMsg('Reading the backup…');
     await flushAll();
     await ensureAllDays();
-    const b=parseBackupRows(await sheetRead(tab));
+    const b=parseBackupRows(fileRows||await sheetRead(tab));
     const nd=Object.keys(b.days).length;
     if(!nd&&!Object.keys(b.periods).length&&!(b.ideal&&Object.keys(b.ideal.slots||{}).length)){bkMsg('That backup tab is empty or missing.','err');return;}
     const missing=[],differ=[];
@@ -3206,10 +3304,7 @@ async function restoreBackup(tab){
     if(!doAdd&&!doReplace){bkMsg('Nothing was changed.');return;}
     const dayKeys=[...(doAdd?missing:[]),...(doReplace?differ:[])],perKeys=[...(doAdd?pMissing:[]),...(doReplace?pDiffer:[])];
     try{ // safety copy of everything about to be replaced
-      const stash={at:new Date().toISOString(),days:{},periods:{}};
-      differ.filter(()=>doReplace).forEach(k=>{stash.days[k]=normDayObj(k,dayDataFor(k));});
-      pDiffer.filter(()=>doReplace).forEach(k=>{stash.periods[k]=periods[k];});
-      if(doReplace)ls('tm_prerestore',JSON.stringify(stash));
+      differ.filter(()=>doReplace).forEach(k=>{archiveCopy(k,dayDataFor(k),'version before a restore replaced it');});
     }catch(e){}
     const FP=firebase.firestore.FieldPath;let done=0;
     for(let i=0;i<dayKeys.length;i+=10){
@@ -3236,24 +3331,25 @@ async function restoreBackup(tab){
 // ── Sheet URL follows your account to every device (newest edit wins) ──
 function saveSheetSettings(){
   const u=document.getElementById('sheet-url'),t=document.getElementById('sheet-tab');if(!u||!t)return;
-  const url=u.value.trim(),tab=t.value.trim()||'Daily Log';
+  const url=u.value.trim(),tab=t.value.trim()||'Daily Log',ke=document.getElementById('sheet-key'),key=ke?ke.value.trim().slice(0,200):sheetKey();
   if(url&&!sheetUrlOk(url))return;
-  if(url===(ls('tm_sheet_url')||'')&&tab===(ls('tm_sheet_tab')||'Daily Log')&&sheetPushed)return;
-  ls('tm_sheet_url',url);ls('tm_sheet_tab',tab);pushSheetSettings();
+  if(url===(ls('tm_sheet_url')||'')&&tab===(ls('tm_sheet_tab')||'Daily Log')&&key===sheetKey()&&sheetPushed)return;
+  ls('tm_sheet_url',url);ls('tm_sheet_tab',tab);ls('tm_sheet_key',key);pushSheetSettings();
 }
 function pushSheetSettings(){
   const url=(ls('tm_sheet_url')||'').trim();
   if(!uid||!hydrated||!sheetUrlOk(url))return;
   const at=Date.now();ls('tm_sheet_at',String(at));sheetPushed=true;
-  db.collection('time-mgmt').doc(uid).set({sheetUrl:url,sheetTab:ls('tm_sheet_tab')||'Daily Log',sheetAt:at,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(()=>{sheetPushed=false;});
+  db.collection('time-mgmt').doc(uid).set({sheetUrl:url,sheetTab:ls('tm_sheet_tab')||'Daily Log',sheetKey:sheetKey(),sheetAt:at,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(()=>{sheetPushed=false;});
 }
 function adoptSheetSettings(d){
   if(!d)return;
   if(d.bkDay&&d.bkDay>(ls('tm_bk_day')||'')){ls('tm_bk_day',d.bkDay);ls('tm_bk_at',d.bkAt||'');ls('tm_bk_n',String(d.bkN||0));bkStatus();}
   const mine=Number(ls('tm_sheet_at'))||0,at=Number(d.sheetAt)||0,local=(ls('tm_sheet_url')||'').trim();
   if(d.sheetUrl&&sheetUrlOk(d.sheetUrl)&&(at>mine||!local)){
-    ls('tm_sheet_url',d.sheetUrl);ls('tm_sheet_tab',d.sheetTab||'Daily Log');ls('tm_sheet_at',String(at));sheetPushed=true;
-    const u=document.getElementById('sheet-url'),t=document.getElementById('sheet-tab');
+    ls('tm_sheet_url',d.sheetUrl);ls('tm_sheet_tab',d.sheetTab||'Daily Log');ls('tm_sheet_key',typeof d.sheetKey==='string'?d.sheetKey.slice(0,200):'');ls('tm_sheet_at',String(at));sheetPushed=true;
+    const u=document.getElementById('sheet-url'),t=document.getElementById('sheet-tab'),ke=document.getElementById('sheet-key');
+    if(ke&&document.activeElement!==ke)ke.value=sheetKey();
     if(u&&document.activeElement!==u)u.value=d.sheetUrl;
     if(t&&document.activeElement!==t)t.value=d.sheetTab||'Daily Log';
     bkStatus();

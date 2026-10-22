@@ -16,6 +16,10 @@
  * 7. Paste that URL into the Planner app's
  *    "Apps Script URL" field → tap "Save today's data"
  *
+ * 8. PROTECT IT: set ACCESS_KEY below to a long secret phrase (20+ characters),
+ *    then type the same phrase in the app: Settings → Sheet → Access key.
+ *    Without a key, anyone who learns the URL can read or overwrite your data.
+ *
  * Done! The URL is remembered, so future saves are one click.
  *
  * UPDATING FROM AN OLDER VERSION (needed for the daily backup):
@@ -24,11 +28,25 @@
  * The URL stays the same.
  */
 
+var ACCESS_KEY = '';   // <-- put your secret phrase between the quotes
+
+function authed_(k) { return !ACCESS_KEY || String(k || '') === ACCESS_KEY; }
+
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var tabName = data.tabName || 'Daily Log';
-    var rows = data.rows || [];
+    if (!authed_(data.key)) return out('error: wrong access key');
+    var tabName = String(data.tabName || 'Daily Log');
+    if (!/^[\w \-().]{1,60}$/.test(tabName)) return out('error: bad tab name');
+    var rows = Array.isArray(data.rows) ? data.rows : [];
+    if (rows.length > 20000) return out('error: too many rows');
+    rows = rows.map(function (r) {
+      return (Array.isArray(r) ? r : []).slice(0, 30).map(function (c) {
+        return typeof c === 'string' ? c.slice(0, 50000) : c;
+      });
+    });
+    // never wipe a tab with an (almost) empty payload
+    if (data.replace === true && rows.length < 2) return out('error: refusing to replace with empty data');
 
     // Always write to the sheet this script is attached to
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -102,6 +120,10 @@ function doPost(e) {
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.action === 'read') {
+    if (!authed_(p.key)) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, error: 'wrong access key' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     try {
       var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(p.tab || '');
       var rows = sh && sh.getLastRow() > 0 ? sh.getDataRange().getValues() : [];
@@ -112,7 +134,7 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
   }
-  return out('Planner receiver v2 is running. Use the app to save data.');
+  return out('Planner receiver v2 is running. ' + (ACCESS_KEY ? '(access key required)' : 'WARNING: no access key set.'));
 }
 
 function out(msg) {
