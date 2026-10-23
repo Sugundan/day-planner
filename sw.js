@@ -1,5 +1,5 @@
 /* Planner — Service Worker (offline support) */
-const CACHE = 'day-planner-v82';
+const CACHE = 'day-planner-v84';
 const ASSETS = [
   './',
   './index.html',
