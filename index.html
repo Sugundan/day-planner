@@ -1019,7 +1019,7 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
 </div>
 
 <script>
-const BUILD='v10.7 — 23 Oct 2026';
+const BUILD='v10.8 — 23 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -1123,6 +1123,7 @@ let sheetPushed=false,rvNote={},autoTried=false,deskTab='slots',calSel='',calY=0
 let periods=(()=>{try{const o=JSON.parse(ls('tm_periods')||'{}'),r={};Object.keys(o).forEach(k=>{if(/^[wmy]:\d{4}-\d{2}(-\d{2})?$/.test(k))r[k]=normPeriod(o[k]);});return r;}catch(e){return{};}})();
 let remotePeriods={},periodDirty=new Set(),periodT=null;
 let goalType='week',goalView='all',goalCursor=null,goalReviewOpen=false,visionLast='intent';
+let slotTouched = null;    // day whose slots the user last edited by hand (lets them clear a whole day on purpose)
 let intentTouched = null;  // day the user last edited intentions/review on (lets them clear an intent-only day)
 
 let WORK=[], LPRE=[], LPOST=[], ALL=[], ANCH={};
@@ -1240,7 +1241,7 @@ function writeDayNow(){
   // GUARD 3: never overwrite a non-empty cloud day with an empty local day.
   const remote=(remoteDays[dk]||{}).slots;
   const remoteIntent=normIntent((remoteDays[dk]||{}).intent);
-  if(!(dayHasContent(snapSlots)||intentHasContent(snapIntent))&&(dayHasContent(remote)||intentHasContent(remoteIntent))&&!(intentTouched===dk&&!dayHasContent(remote))){
+  if(!(dayHasContent(snapSlots)||intentHasContent(snapIntent))&&(dayHasContent(remote)||intentHasContent(remoteIntent))&&!(intentTouched===dk&&!dayHasContent(remote))&&slotTouched!==dk){
     console.warn('[sync] Blocked empty write over non-empty cloud data for',dk,'— re-pulling cloud copy.');
     ls('tm_bak_'+dk,JSON.stringify(remote||{}));
     ls(`tm_${dk}`,JSON.stringify(remote||{}));
@@ -1255,7 +1256,7 @@ function writeDayNow(){
     return Promise.resolve();
   }
   const dayObj={slots:snapSlots,dayTimes:snapTimes,isHoliday:snapHol,date:dk,...(intentKeep(snapIntent)?{intent:snapIntent}:{})};
-  {const old=remoteDays[dk],oc=old?textCount(old):0,nc=textCount(dayObj);if(oc-nc>=3||(oc>=4&&nc<oc*0.5))archiveCopy(dk,old,'cloud copy before a save that removed much of it');}   // a big shrink is kept recoverable
+  {const old=remoteDays[dk],oc=old?textCount(old):0,nc=textCount(dayObj);if(oc-nc>=3||(oc>=4&&nc<oc*0.5)||(oc>0&&nc===0))archiveCopy(dk,old,'cloud copy before a save that removed much of it');}   // a big shrink is kept recoverable
   showSync('syncing');
   const FP=firebase.firestore.FieldPath;
   const wr=layout2
@@ -1884,7 +1885,7 @@ function isDone(s){return !!((s&&s.done)||'').trim()||!!(s&&s.skip);}
 
 function addType(t,v){
   if(!v)return;
-  dirty=true;
+  dirty=true;slotTouched=loadedDk;
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   if(!slots[t].types.includes(v))slots[t].types.push(v);
@@ -1894,7 +1895,7 @@ function addType(t,v){
 
 function removeType(t,v){
   if(!slots[t])return;
-  dirty=true;
+  dirty=true;slotTouched=loadedDk;
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   slots[t].types=slots[t].types.filter(x=>x!==v);
   lastTypeAt=Date.now();refreshTypes(t);save();
@@ -2253,7 +2254,7 @@ function updSlot(t,k,v){
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   slots[t][k]=v;
-  dirty=true;
+  dirty=true;slotTouched=loadedDk;
   const row=document.getElementById('sr-'+t.replace(/:/g,''));
   if(row){
     row.classList.toggle('done-row',isDone(slots[t]));
@@ -2264,7 +2265,7 @@ function updSlot(t,k,v){
 }
 
 function tickSlot(t){
-  dirty=true;
+  dirty=true;slotTouched=loadedDk;
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   if(isDone(slots[t])){
@@ -2287,7 +2288,7 @@ function redrawRow(t){
 }
 
 function skipSlot(t){
-  dirty=true;
+  dirty=true;slotTouched=loadedDk;
   if(!slots[t])slots[t]={plan:'',done:'',types:[]};
   if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
   slots[t].skip=!slots[t].skip;
