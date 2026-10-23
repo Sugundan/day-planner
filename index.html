@@ -985,6 +985,9 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
         <div class="slp-sub" style="padding:0 0 10px">If a day was ever replaced or shortened (for example after editing on two devices), the older version is kept here so you can put it back.</div>
         <button class="btn-secondary" onclick="loadSafety()"><i class="ti ti-list-search"></i> Show safety copies</button>
         <div id="safe-list"></div>
+        <div class="slp-sub" style="padding:14px 0 6px"><b>Saved on the wrong date?</b> Copy a whole day to the date it belongs to. The day you copy from is left as it is, and anything on the target date is kept as a safety copy first.</div>
+        <div class="time-field" style="display:flex;gap:8px;align-items:center"><input type="date" id="cp-from" aria-label="Copy from"><i class="ti ti-arrow-right"></i><input type="date" id="cp-to" aria-label="Copy to"></div>
+        <button class="btn-secondary" style="margin-top:8px" onclick="copyDay()"><i class="ti ti-copy"></i> Copy day</button>
       </div>
       <div class="card">
         <div class="card-title"><i class="ti ti-star"></i> Ideal day</div>
@@ -1019,7 +1022,7 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
 </div>
 
 <script>
-const BUILD='v10.8 — 23 Oct 2026';
+const BUILD='v10.9 — 23 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -3211,6 +3214,28 @@ function renderSafety(){
     const [y,m,d]=c.date.split('-').map(Number),when=c.at?new Date(c.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
     return`<div class="safe-row"><div><b>${esc(new Date(y,m-1,d).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'}))}</b><small>${esc(c.n+' entr'+(c.n===1?'y':'ies'))}${when?' · saved '+esc(when):''}<br>${esc(c.why)}</small></div><button class="btn-sm" onclick="restoreSafety(${i})">Put back</button></div>`;
   }).join('');
+}
+async function copyDay(){
+  const f=(document.getElementById('cp-from')||{}).value,t=(document.getElementById('cp-to')||{}).value,ok=/^\d{4}-\d{2}-\d{2}$/;
+  if(!ok.test(f||'')||!ok.test(t||'')||f===t){toast('Pick two different dates.');return;}
+  if(!uid||!hydrated||(layout2&&!daysHydrated)){toast('Your cloud data is still loading. Try again in a moment.');return;}
+  try{
+    await flushAll();
+    await ensureDay(f);await ensureDay(t);
+    const src=dayDataFor(f);
+    if(!src||textCount(src)===0){toast('Nothing is saved on '+f+'.');return;}
+    const d=JSON.parse(JSON.stringify(src));
+    if(!confirm(`Copy ${f} to ${t}?\n\n${f} is not changed. What ${t} holds now is kept as a safety copy.`))return;
+    closeSettings();
+    document.getElementById('date-pick').value=t;onDateChange();
+    await ensureDay(t);
+    archiveCopy(t,{slots,intent,dayTimes,isHoliday},'version before a copy from '+f);
+    slots=cleanSlots(d.slots);intent=normIntent(d.intent);
+    if(d.dayTimes){const dt={...DEF};['wake','workReach','workLeave','sleep'].forEach(k=>{if(validTime(d.dayTimes[k]))dt[k]=d.dayTimes[k];});dayTimes=dt;}
+    isHoliday=!!d.isHoliday;dirty=true;slotTouched=t;intentTouched=t;
+    buildSlots();renderSched();renderDayTop();save();
+    toast('Copied from '+f+'.');
+  }catch(e){toast('Could not copy: '+((e&&e.message)||'unknown error'));}
 }
 async function restoreSafety(i){
   const c=safeItems[i];if(!c)return;
