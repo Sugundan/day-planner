@@ -302,7 +302,7 @@ html.locked #lock-screen{display:flex}
 .eodgrid,.intgrid{display:block}
 /* ── Desktop view (its own layout; toggle in the header or Settings; saved per device) ── */
 #desk-head,#mini-cal{display:none}
-body.desk #app[style*="flex"]{display:grid !important;grid-template-columns:264px minmax(0,1fr) 400px;grid-template-rows:auto auto auto;max-width:none;margin:0;align-items:start}
+body.desk #app[style*="flex"]{display:grid !important;grid-template-columns:264px minmax(0,1fr) 400px;grid-template-rows:auto auto 1fr;max-width:none;margin:0;align-items:start}
 body.desk #app>.hdr{grid-column:1;grid-row:1/span 3;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;padding:20px 14px;border-bottom:none;border-right:0.5px solid var(--border)}
 body.desk .hdr-top{order:0;margin-bottom:18px;flex-wrap:wrap}
 body.desk .hdr-title{font-size:19px;flex:1 0 100%}
@@ -340,7 +340,7 @@ body.desk .sub-tabs{max-width:360px}
 body.desk #sec-slots{grid-column:2;grid-row:2}
 body.desk #sec-intent{grid-column:2/-1;grid-row:2}
 body.desk #sec-goals{grid-column:2/-1;grid-row:2}
-body.desk.d-both #sec-intent{grid-column:3;grid-row:1/span 2;padding-top:28px !important;background:var(--bg);border-left:0.5px solid var(--border);align-self:stretch;padding:16px 22px 60px;min-height:100vh}
+body.desk.d-both #sec-intent{grid-column:3;grid-row:1/span 3;padding-top:28px !important;background:var(--bg);border-left:0.5px solid var(--border);align-self:stretch;padding:16px 22px 60px;min-height:100vh}
 body.desk .intgrid,body.desk .eodgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;max-width:1100px}
 body.desk.d-both .intgrid,body.desk.d-both .eodgrid{display:block}
 body.desk:not(.d-both) .intgrid .int-field{margin-bottom:0}
@@ -1022,7 +1022,7 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
 </div>
 
 <script>
-const BUILD='v10.9 — 23 Oct 2026';
+const BUILD='v10.10 — 25 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -2054,7 +2054,7 @@ function toggleSlotsDone(){
 function useCardHtml(cls,kind){   // small per-section line: "Time slots used well  5 / 18" + select + done
   const c=useCounts({slots,dayTimes,isHoliday}),on=!!intent.slotsReviewed,k=kind&&c[kind]?kind:'',x=k?c[k]:c;
   const pct=x.total?Math.round(100*x.well/x.total):0;
-  return`<div class="${cls} use-box use-sm" data-kind="${kind||''}"><div class="use-row"><span class="use-hd">Time slots used well</span><span class="use-num"><b>${x.well}</b> / ${x.total}</span></div><div class="use-bar"><i style="width:${pct}%"></i></div><div class="use-btns"><button class="rv-done" onclick="goSlots('${k||'all'}')"><i class="ti ti-clock-check"></i> Select slots</button><button class="rv-done${on?' on':''}" onclick="toggleSlotsDone()"><i class="ti ti-circle-check"></i> ${on?'Time review done':'Time review is done'}</button></div></div>`;
+  return`<div class="${cls} use-box use-sm" data-kind="${kind||''}"><div class="use-row"><span class="use-hd">Time slots used well</span><span class="use-num"><b>${x.well}</b> / ${x.total}</span></div><div class="use-bar"><i style="width:${pct}%"></i></div><div class="use-btns"><button class="rv-done" onclick="goSlots('${k||'all'}')"><i class="ti ti-clock-check"></i> Select slots</button><button class="rv-done${on?' on':''}" onclick="toggleSlotsDone()"><i class="ti ti-circle-check"></i> ${on?'Time review done · Undo':'Mark time review done'}</button></div></div>`;
 }
 function useEodHtml(kind){return useCardHtml('use-eod',kind);}   // inside the End of day review
 function updUseSum(){
