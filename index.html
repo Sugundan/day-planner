@@ -164,15 +164,6 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Displ
 .srow.skip-row .circ{background:var(--text3);border-color:var(--text3);color:#fff}
 
 /* ── Type tags ── */
-.type-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;padding:5px 8px 4px;position:relative}
-.type-btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text3);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;flex-shrink:0;transition:all 0.12s}
-.type-btn:active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
-.type-pop{display:none;position:absolute;top:24px;left:0;z-index:300;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--r);box-shadow:var(--shadow-md);padding:4px;min-width:130px}
-.type-pop.open{display:block}
-.type-pop-opt{display:block;width:100%;text-align:left;padding:6px 10px;font-size:12px;font-weight:600;border:none;background:transparent;cursor:pointer;border-radius:8px;font-family:inherit;color:var(--text)}
-.type-pop-opt:hover,.type-pop-opt:active{background:var(--bg2)}
-.ttag{font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px;border:0.5px solid transparent;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.type-row{min-width:0;max-width:100%}
 
 /* ── Time card ── */
 .time-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rlg);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
@@ -399,7 +390,24 @@ body.desk #ideal-container{display:block}
 .sel-cb{margin-top:3px;align-self:flex-start;border:none;background:transparent;color:var(--text3);font-size:22px;padding:0;cursor:pointer;display:flex}
 .sel-cb.on{color:var(--accent)}
 .srow.sel-on{outline:2px solid var(--accent);outline-offset:-2px}
-body.sel-open{padding-bottom:150px}
+.use-btn{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
+.stime .use-btn{padding:3px 5px;font-size:9px;letter-spacing:0}
+.use-btn.u-mgr{border:1px solid #34c77b;background:#e5f9ec;color:#0f8a4c}
+.use-btn.u-ic{border:1px solid #6aa9f5;background:#e6f1ff;color:#2760b8}
+.use-btn.u-del{border:1px solid #f0a73a;background:#fff3e0;color:#9a5a0b}
+.use-btn.u-dis{border:1px solid #f08a8a;background:#fdeeee;color:#b3261e}
+.use-btn.u-brk{border:1px solid var(--border2);background:var(--bg2);color:var(--text2)}
+@media(prefers-color-scheme:dark){.use-btn.u-mgr{background:#0f2a1c;color:#6ee7a0}.use-btn.u-ic{background:#14243d;color:#9cc7ff}.use-btn.u-del{background:#2b2010;color:#f0a73a}.use-btn.u-dis{background:#2d1212;color:#f87171}}
+#cat-pop{position:fixed;z-index:400;background:var(--bg);border:1px solid var(--border2);border-radius:16px;box-shadow:var(--shadow-md);padding:6px;min-width:150px;display:flex;flex-direction:column}
+#cat-pop button{text-align:left;padding:10px 12px;font-size:14px;font-weight:600;border:none;background:transparent;color:var(--text);border-radius:10px;cursor:pointer;font-family:inherit}
+#cat-pop button:hover,#cat-pop button:active{background:var(--bg2)}
+#cat-pop button.on{background:var(--accent-bg);color:var(--accent-txt)}
+#cat-pop button.clr{color:var(--text3);font-weight:500}
+.sel-btns{flex-wrap:wrap;margin-bottom:6px}
+.sel-btns button{flex:1 1 30%;padding:9px 4px;font-size:12px}
+.sel-btns .su-mgr{border-color:#34c77b;color:#0f8a4c}.sel-btns .su-ic{border-color:#6aa9f5;color:#2760b8}.sel-btns .su-del{border-color:#f0a73a;color:#9a5a0b}.sel-btns .su-dis{border-color:#f08a8a;color:#b3261e}
+.use-brk{font-size:11.5px;font-weight:600;color:var(--text2);margin:-2px 0 8px}
+body.sel-open{padding-bottom:210px}
 .use-box{margin:10px 0 4px;padding:10px 12px;border:0.5px solid var(--border2);border-radius:12px;background:var(--bg2)}
 .use-box .use-hd{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px}
 
@@ -464,7 +472,6 @@ body.desk .vb.on{background:var(--accent-bg);color:var(--accent-txt);border-colo
 .sheet{border-radius:26px 26px 0 0;background:var(--bg3)}
 .sheet-hdr{font-weight:700;letter-spacing:-0.02em}
 #toast{border-radius:999px;font-weight:600}
-.type-pop{border-radius:14px}
 #sel-bar{border-radius:20px 20px 0 0;border:1px solid var(--border);border-bottom:none}
 .od-card{border:1px solid var(--red-border)}
 input[type=date].field-input,input[type=time].field-input,.time-field input[type=time]{min-width:0;max-width:100%}
@@ -576,8 +583,6 @@ body{background:transparent}
 .srow.done-row .circ{box-shadow:0 4px 10px rgba(18,161,80,0.35)}
 .scheck .circ{width:24px;height:24px}
 .period-lbl{font-weight:700;box-shadow:0 2px 8px rgba(60,110,190,0.08)}
-.type-pop{border-radius:16px;background:var(--bg);box-shadow:var(--shadow-md)}
-.ttag{border-radius:999px;padding:2px 8px}
 .use-btn{border-radius:999px;padding:3px 8px;font-weight:700}
 /* intentions + end of day */
 .int-field{border-radius:16px;box-shadow:0 1px 0 rgba(255,255,255,.8) inset}
@@ -641,7 +646,6 @@ body{color:var(--ink)}
 .use-btn{font-size:9.5px;padding:3px 9px}
 .use-btn.u-nf{opacity:.45;border-style:dashed}
 .use-btn.u-yes{background:linear-gradient(135deg,#e5f9ec,#d2f4df);border-color:#34c77b;color:#0f8a4c}
-.ttag{font-weight:700}
 /* filter chips + selection */
 .sel-help{margin:2px 0 12px;gap:7px}
 .sel-help span{font-weight:700;color:var(--ink3);text-transform:uppercase;font-size:10px;letter-spacing:.1em}
@@ -919,7 +923,9 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
       <div id="picker-body"></div>
     </div>
   </div>
-  <div id="sel-bar"><span id="sel-n">Tap slots to select</span><div class="sel-btns"><button class="sel-act su-yes" onclick="bulkMark('yes')"><i class="ti ti-check"></i> Well utilised</button><button class="sel-act su-clr" onclick="bulkMark('')">Unmark</button><button class="su-done" onclick="toggleSelMode()">Done</button></div></div>
+  <div id="sel-bar"><span id="sel-n">Tap slots to select</span>
+    <div class="sel-btns sel-wk"><button class="sel-act su-mgr" onclick="bulkMark('mgr')">Manager task</button><button class="sel-act su-ic" onclick="bulkMark('ic')">IC task</button><button class="sel-act su-del" onclick="bulkMark('del')">To delegate</button><button class="sel-act su-dis" onclick="bulkMark('dis')">Distraction</button><button class="sel-act su-brk" onclick="bulkMark('brk')">Break</button></div>
+    <div class="sel-btns"><button class="sel-act su-yes" onclick="bulkMark('yes')"><i class="ti ti-check"></i> Life: well utilised</button><button class="sel-act su-clr" onclick="bulkMark('')">Unmark</button><button class="su-done" onclick="toggleSelMode()">Done</button></div></div>
   <div id="toast"></div>
 
   <!-- IDEAL DAY (opened from Settings) -->
@@ -1022,7 +1028,7 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
 </div>
 
 <script>
-const BUILD='v10.10 — 25 Oct 2026';
+const BUILD='v10.12 — 25 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -1056,7 +1062,7 @@ function winStart(){if(!winKey){const d=new Date();d.setDate(d.getDate()-WIN_DAY
 const PKEY=/^[wmy]:\d{4}-\d{2}(-\d{2})?$/;
 let loadedDk=null; // the day currently held in the `slots` global
 function dayHasContent(s){
-  return !!(s&&Object.values(s).some(x=>x&&(((x.plan||'').trim())||((x.done||'').trim())||(Array.isArray(x.types)&&x.types.length)||x.type||x.skip||x.use)));
+  return !!(s&&Object.values(s).some(x=>x&&(((x.plan||'').trim())||((x.done||'').trim())||x.skip||x.use||x.wk)));
 }
 
 // ── State ─────────────────────────────────────────────────
@@ -1065,18 +1071,14 @@ let dayTimes = {...DEF};
 let idealTimes = {...DEF};
 let isHoliday = false;
 let showDone = ls('tm_showdone')==='1';
-let slots = {};       // {slotKey:{plan,done,types,completed}}
+let slots = {};       // {slotKey:{plan,done,wk,use}}
 let idealSlots = {};  // {slotKey:{plan}}
 let schedView = 'all';
 // Declared up here: the cached-boot IIFE below runs before the rest of the script has been evaluated.
-const TCOLORS={
-  Work:         {bg:'#FFF3E0',fg:'#854F0B',bd:'#EF9F27'},
-  Meeting:      {bg:'#E8F0FE',fg:'#1A56DB',bd:'#93B4F8'},
-  Call:         {bg:'#F3EDFC',fg:'#6B21A8',bd:'#C084FC'},
-  Transactional:{bg:'#E5EEF9',fg:'#2A5C8A',bd:'#7FB3DE'},
-  Break:        {bg:'#F0FDF4',fg:'#15803D',bd:'#86EFAC'},
-};
-const TTYPES=Object.keys(TCOLORS);
+// Work time review: every work slot is one of these. Manager task counts as time used well.
+const WKSHORT={mgr:'Manager',ic:'IC',del:'Delegate',dis:'Distraction',brk:'Break'};
+const WKBTN={mgr:'Mgr',ic:'IC',del:'Deleg',dis:'Distr',brk:'Break'};   // short labels for the narrow time column
+const WKCATS=[['mgr','Manager task'],['ic','IC task'],['del','To delegate'],['dis','Distraction'],['brk','Break']];
 const MAXPTS=10;
 const KMETA={work:{lbl:'Work',ic:'ti-briefcase',ph:'What must move forward at work today…'},life:{lbl:'Life',ic:'ti-home',ph:'What matters most outside work today…'}};
 let lastAutoToday=null; // the "today" we auto-set in the date picker
@@ -1111,7 +1113,7 @@ let eodOpen = false;
 let recRules=[],dirtyRec=false,fbRecT=null,recDays=new Set([1,2,3,4,5]);   // recurring slots
 const REV_ALL_FROM='2026-10-22';   // from this day on, the Work and Life end-of-day review is required even when there were no intentions
 const SLOT_REV_FROM='2026-10-14';   // days before this were never asked for it, so they don't show up as overdue
-const SLOT_FLT=[['all','All'],['yes','Well utilised'],['no','Not marked']];
+const SLOT_FLT=[['all','All'],['yes','Marked'],['no','Not marked']];
 let slotFilter='all';
 let selMode=false,selSet=new Set();   // bulk review on the Schedule page
 let intView = 'all';  // All / Work / Life filter inside the Intentions tab
@@ -1226,7 +1228,7 @@ function writeDayNow(){
   const dk=loadedDk||dateKey();
   // Snapshot the payload NOW — by the time .then runs, the globals may
   // already hold a different day's data.
-  const snapSlots={...slots},snapTimes={...dayTimes},snapHol=isHoliday,snapIntent=JSON.parse(JSON.stringify(intent));
+  const snapSlots=Object.fromEntries(Object.entries(slots).map(([k,v])=>{const o={...v};delete o.types;delete o.type;return[k,o];})),snapTimes={...dayTimes},snapHol=isHoliday,snapIntent=JSON.parse(JSON.stringify(intent));
   // GUARD 1: never write before we've read the cloud at least once this
   // session. A device that just opened may still hold stale/empty local data.
   if(!hydrated||(layout2&&!daysHydrated)){
@@ -1556,7 +1558,6 @@ function listenDay(){
 
 let lastTypeAt=0;
 function isTyping(){
-  if(document.querySelector('.type-pop.open'))return true;
   if(Date.now()-lastTypeAt<2000)return true;
   const el=document.activeElement;
   if(!el||!el.matches)return false;
@@ -1870,9 +1871,10 @@ function onDateChange(){
 
 // ── Type colours ──────────────────────────────────────────
 
-function tstyle(tp){const c=TCOLORS[tp];if(!c)return'';return`background:${c.bg};color:${c.fg};border-color:${c.bd}`;}
-function gtypes(s){const a=Array.isArray(s.types)?s.types:s.type?[s.type]:[];return a.filter(x=>typeof x==='string'&&Object.prototype.hasOwnProperty.call(TCOLORS,x));}   // only the known types (anything else from the cloud is ignored)
-// ── Time-slot review: was each slot used well? (yes / maybe / no) ──
+// A work slot's category (legacy "well utilised" on a work slot counts as Manager task)
+function wkOf(x){const v=x&&x.wk;return Object.prototype.hasOwnProperty.call(WKSHORT,v)?v:(x&&x.use==='yes'?'mgr':'');}
+function isWk(t){return kindSlots({dayTimes,isHoliday}).work.includes(t);}
+// ── Time-slot review: work slots get a category, life slots are marked well utilised ──
 function slotHasContent(x){return !!(x&&(((x.plan||'').trim())||((x.done||'').trim())||x.skip));}
 function kindSlots(d){   // the work / life time slots of a day, from its own day times
   const dt={...DEF,...((d&&d.dayTimes)||{})};
@@ -1880,69 +1882,12 @@ function kindSlots(d){   // the work / life time slots of a day, from its own da
   return{work:makeSlots(dt.workReach,dt.workLeave),life:[...makeSlots(dt.wake,dt.workReach),...makeSlots(dt.workLeave,dt.sleep)]};
 }
 function useCounts(d){   // time review: how many 30-minute slots of the day were well utilised, out of every slot of the day
-  const sl=(d&&d.slots)||{},ks=kindSlots(d),f=a=>({well:a.filter(t=>(sl[t]||{}).use==='yes').length,total:a.length});
-  const w=f(ks.work),l=f(ks.life);
+  const sl=(d&&d.slots)||{},ks=kindSlots(d);
+  const f=(a,isW)=>{const o={well:0,total:a.length,mgr:0,ic:0,del:0,dis:0,brk:0};a.forEach(t=>{const x=sl[t]||{};if(isW){const c=wkOf(x);if(c)o[c]++;}else if(x.use==='yes')o.well++;});if(isW)o.well=o.mgr;return o;};
+  const w=f(ks.work,true),l=f(ks.life,false);
   return{well:w.well+l.well,total:w.total+l.total,work:w,life:l};
 }
 function isDone(s){return !!((s&&s.done)||'').trim()||!!(s&&s.skip);}
-
-function addType(t,v){
-  if(!v)return;
-  dirty=true;slotTouched=loadedDk;
-  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
-  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
-  if(!slots[t].types.includes(v))slots[t].types.push(v);
-  slots[t].type='';lastTypeAt=Date.now();
-  refreshTypes(t);save();
-}
-
-function removeType(t,v){
-  if(!slots[t])return;
-  dirty=true;slotTouched=loadedDk;
-  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
-  slots[t].types=slots[t].types.filter(x=>x!==v);
-  lastTypeAt=Date.now();refreshTypes(t);save();
-}
-
-function refreshTypes(t){
-  const row=document.getElementById('sr-'+t.replace(/:/g,''));
-  if(!row)return;
-  const s=slots[t]||{};const types=gtypes(s);
-  const tr=row.querySelector('.type-row');if(!tr)return;
-  tr.querySelectorAll('.ttag').forEach(el=>el.remove());
-  tr.querySelectorAll('.type-btn-add').forEach(el=>el.remove());
-  const pop=tr.querySelector('.type-pop');
-  const avail=TTYPES.filter(tp=>!types.includes(tp));
-  if(pop){
-    pop.innerHTML=avail.map(tp=>`<button class="type-pop-opt" onclick="addType('${t}','${tp}');closePop('${t}')">${tp}</button>`).join('');
-    if(!avail.length)pop.classList.remove('open');
-  }
-  types.forEach(tp=>{
-    const sp=document.createElement('span');sp.className='ttag';sp.style.cssText=tstyle(tp);
-    sp.innerHTML=`${tp}<button onclick="removeType('${t}','${tp}')" style="background:none;border:none;cursor:pointer;padding:0;font-size:9px;color:inherit;margin-left:2px;opacity:0.6">×</button>`;
-    tr.appendChild(sp);
-  });
-  if(avail.length){
-    const ab=document.createElement('button');ab.className='type-btn type-btn-add';
-    ab.title='Add type';ab.textContent='+';
-    ab.onclick=function(){togglePop(t,this);};
-    tr.appendChild(ab);
-  }
-}
-
-function closePop(t){
-  const row=document.getElementById('sr-'+t.replace(/:/g,''));
-  if(row){const p=row.querySelector('.type-pop');if(p)p.classList.remove('open');}
-}
-function togglePop(t,btn){
-  const pop=btn.closest('.type-row').querySelector('.type-pop');
-  const was=pop&&pop.classList.contains('open');
-  document.querySelectorAll('.type-pop.open').forEach(p=>p.classList.remove('open'));
-  if(pop&&!was)pop.classList.add('open');
-}
-document.addEventListener('click',e=>{
-  try{if(!e.target.closest('.type-row'))document.querySelectorAll('.type-pop.open').forEach(p=>p.classList.remove('open'));}catch(_){}
-});
 
 // ── Save ──────────────────────────────────────────────────
 function save(){
@@ -1975,7 +1920,8 @@ function autoGrow(ta){
 // ── Bulk review: select many slots, then mark them Yes / Maybe / No in one go ──
 function DONEBAR(){return toggleBar('Show done column','ti-notes',showDone,'toggleDone');}
 function selBox(t){const on=selSet.has(t);return`<button class="sel-cb${on?' on':''}" onclick="toggleSel('${t}')" aria-label="Select slot" aria-pressed="${on}"><i class="ti ${on?'ti-square-check-filled':'ti-square'}"></i></button>`;}
-function slotMatches(t){const x=slots[t]||{};return slotFilter==='yes'?x.use==='yes':slotFilter==='no'?x.use!=='yes':true;}
+function markOf(t){const x=slots[t]||{};return isWk(t)?wkOf(x):(x.use==='yes'?'yes':'');}
+function slotMatches(t){return slotFilter==='yes'?!!markOf(t):slotFilter==='no'?!markOf(t):true;}
 function applySlotFilter(){
   const act=document.activeElement;
   document.querySelectorAll('#sched-container [data-t]').forEach(r=>{
@@ -1994,7 +1940,7 @@ function selVisible(){   // slots shown on the page right now
   return want.flatMap(k=>ks[k]).filter(slotMatches);
 }
 function bulkCtl(){
-  let h=toggleBar('Select slots to mark well utilised','ti-checklist',selMode,'toggleSelMode');
+  let h=toggleBar('Select slots to mark how time was used','ti-checklist',selMode,'toggleSelMode');
   if(selMode)h+=`<div class="sel-help flt"><span>Show:</span>`+SLOT_FLT.map(([k,l])=>`<button class="${slotFilter===k?'on':''}" onclick="setSlotFilter('${k}')">${l}</button>`).join('')+`</div>`;
   if(selMode)h+=`<div class="sel-help"><span>Select:</span><button onclick="selPick('all')">All shown</button><button onclick="selPick('none')">None</button></div>`;
   return h;
@@ -2017,44 +1963,73 @@ function updSelBar(){
   bar.classList.toggle('show',on);document.body.classList.toggle('sel-open',on);
   const n=selSet.size;document.getElementById('sel-n').textContent=n?`${n} selected`:'Tap slots to select';
   bar.querySelectorAll('.sel-act').forEach(b=>b.disabled=!n);
+  bar.querySelector('.sel-wk').style.display=schedView==='life'?'none':'';
+  bar.querySelector('.su-yes').style.display=schedView==='work'?'none':'';
 }
-function bulkMark(v){   // v = 'yes' (well utilised) or '' (not marked)
+function bulkMark(v){   // v = a work category (mgr, ic, del, dis, brk), 'yes' (life: well utilised) or '' (clear)
   if(!selSet.size)return;
-  const n=selSet.size;
+  let n=0;
   selSet.forEach(t=>{
-    if(!slots[t])slots[t]={plan:'',done:'',types:[]};
-    const x=slots[t];if(!Array.isArray(x.types))x.types=gtypes(x);
-    if(v)x.use='yes';else delete x.use;
+    const w=isWk(t);
+    if(v&&v!=='yes'&&!w)return;      // a work category only goes on work slots
+    if(v==='yes'&&w)return;          // "well utilised" only goes on life slots
+    if(!slots[t])slots[t]={plan:'',done:''};
+    const x=slots[t];delete x.use;delete x.wk;
+    if(v==='yes')x.use='yes';else if(v)x.wk=v;
+    n++;
   });
-  dirty=true;save();selSet.clear();renderSched();updSelBar();
-  toast(v?`${n} slot${n>1?'s':''} marked well utilised`:`${n} slot${n>1?'s':''} unmarked`);
+  if(!n){toast('Nothing to mark: pick the matching kind of slot (Work or Life).');return;}
+  dirty=true;slotTouched=loadedDk;save();selSet.clear();renderSched();updSelBar();
+  toast(v?`${n} slot${n>1?'s':''} marked`:`${n} slot${n>1?'s':''} unmarked`);
 }
-function useBtnState(s){return s.use==='yes'?{cls:' u-yes',lbl:'Well'}:{cls:' u-nf',lbl:'Mark'};}
+function useBtnState(s,w){
+  if(w){const c=wkOf(s);return c?{cls:' u-'+c,lbl:WKBTN[c]}:{cls:' u-nf',lbl:'Mark'};}
+  return s.use==='yes'?{cls:' u-yes',lbl:'Well'}:{cls:' u-nf',lbl:'Mark'};
+}
 function useBtn(t,s,ro){
-  const st=useBtnState(s);
-  if(ro)return`<span class="use-btn${st.cls}" id="ub-${t.replace(/[:-]/g,'')}" style="pointer-events:none">${st.lbl}</span>`;
-  return`<button class="use-btn${st.cls}" id="ub-${t.replace(/[:-]/g,'')}" title="Tap to mark this slot as well utilised" onclick="cycleUse('${t}')">${st.lbl}</button>`;
+  const w=isWk(t),st=useBtnState(s,w),id='ub-'+t.replace(/[:-]/g,'');
+  if(ro)return`<span class="use-btn${st.cls}" id="${id}" style="pointer-events:none">${st.lbl}</span>`;
+  if(w)return`<button class="use-btn${st.cls}" id="${id}" title="Choose what this work slot was" onclick="openCat('${t}',this)">${st.lbl}</button>`;
+  return`<button class="use-btn${st.cls}" id="${id}" title="Tap to mark this slot as well utilised" onclick="cycleUse('${t}')">${st.lbl}</button>`;
 }
-function cycleUse(t){   // tap: well utilised on / off
-  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
+function cycleUse(t){   // life slots, tap: well utilised on / off
+  if(!slots[t])slots[t]={plan:'',done:''};
   const x=slots[t];
-  if(!Array.isArray(x.types))x.types=gtypes(x);
   if(x.use==='yes')delete x.use;else x.use='yes';
-  dirty=true;save();refreshUse(t);if(slotFilter!=='all')applySlotFilter();
+  dirty=true;slotTouched=loadedDk;save();refreshUse(t);if(slotFilter!=='all')applySlotFilter();
 }
+function closeCat(){const p=document.getElementById('cat-pop');if(p)p.remove();}
+function openCat(t,btn){   // small menu for a work slot: Manager task, IC task, To delegate, Distraction, Break
+  const had=document.getElementById('cat-pop');closeCat();if(had&&had.dataset.t===t)return;
+  const cur=wkOf(slots[t]||{}),p=document.createElement('div');p.id='cat-pop';p.dataset.t=t;
+  p.innerHTML=WKCATS.map(([k,l])=>`<button class="${cur===k?'on':''}" onclick="setWk('${t}','${k}')">${l}</button>`).join('')+(cur?`<button class="clr" onclick="setWk('${t}','')">Clear</button>`:'');
+  document.body.appendChild(p);
+  const r=btn.getBoundingClientRect(),w=p.offsetWidth,h=p.offsetHeight;
+  p.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-8))+'px';
+  p.style.top=(r.bottom+6+h>window.innerHeight?Math.max(8,r.top-h-6):r.bottom+6)+'px';
+}
+function setWk(t,v){
+  closeCat();
+  if(!slots[t])slots[t]={plan:'',done:''};
+  const x=slots[t];delete x.use;if(v)x.wk=v;else delete x.wk;
+  dirty=true;slotTouched=loadedDk;save();refreshUse(t);if(slotFilter!=='all')applySlotFilter();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#cat-pop')&&!e.target.closest('.use-btn'))closeCat();});
+window.addEventListener('scroll',closeCat,true);
 function refreshUse(t){
   const b=document.getElementById('ub-'+t.replace(/[:-]/g,'')),x=slots[t]||{};
-  if(b){const st=useBtnState(x);b.className='use-btn'+st.cls;b.textContent=st.lbl;}
+  if(b){const st=useBtnState(x,isWk(t));b.className='use-btn'+st.cls;b.textContent=st.lbl;}
   updUseSum();applySlotFilter();
 }
 function toggleSlotsDone(){
   intent.slotsReviewed=!intent.slotsReviewed;dirty=true;intentTouched=loadedDk;save();
   updUseSum();updateOverdueBadge();toast(intent.slotsReviewed?'Time review marked done':'Time review reopened');
 }
+function wkLine(x){const b=WKCATS.filter(([c])=>x[c]).map(([c])=>`${WKSHORT[c]} ${x[c]}`);return b.length?`<div class="use-brk">${b.join(' · ')}</div>`:'';}
 function useCardHtml(cls,kind){   // small per-section line: "Time slots used well  5 / 18" + select + done
   const c=useCounts({slots,dayTimes,isHoliday}),on=!!intent.slotsReviewed,k=kind&&c[kind]?kind:'',x=k?c[k]:c;
   const pct=x.total?Math.round(100*x.well/x.total):0;
-  return`<div class="${cls} use-box use-sm" data-kind="${kind||''}"><div class="use-row"><span class="use-hd">Time slots used well</span><span class="use-num"><b>${x.well}</b> / ${x.total}</span></div><div class="use-bar"><i style="width:${pct}%"></i></div><div class="use-btns"><button class="rv-done" onclick="goSlots('${k||'all'}')"><i class="ti ti-clock-check"></i> Select slots</button><button class="rv-done${on?' on':''}" onclick="toggleSlotsDone()"><i class="ti ti-circle-check"></i> ${on?'Time review done · Undo':'Mark time review done'}</button></div></div>`;
+  return`<div class="${cls} use-box use-sm" data-kind="${kind||''}"><div class="use-row"><span class="use-hd">Time slots used well</span><span class="use-num"><b>${x.well}</b> / ${x.total}</span></div>${k==='work'?wkLine(x):''}<div class="use-bar"><i style="width:${pct}%"></i></div><div class="use-btns"><button class="rv-done" onclick="goSlots('${k||'all'}')"><i class="ti ti-clock-check"></i> Select slots</button><button class="rv-done${on?' on':''}" onclick="toggleSlotsDone()"><i class="ti ti-circle-check"></i> ${on?'Time review done · Undo':'Mark time review done'}</button></div></div>`;
 }
 function useEodHtml(kind){return useCardHtml('use-eod',kind);}   // inside the End of day review
 function updUseSum(){
@@ -2062,22 +2037,13 @@ function updUseSum(){
 }
 function goSlots(kind){setSchedView(kind);showTab('slots');window.scrollTo(0,0);}   // rate the slots on the Schedule page
 function slotRow(t,isWork){
-  const s=slots[t]||{plan:'',done:'',types:[]};
+  const s=slots[t]||{plan:'',done:''};
   const [st,en]=t.split('-');
   const hasPlan=(s.plan||'').trim();
   const skipped=!!s.skip&&!(s.done||'').trim();
   const cls=isDone(s)?('srow done-row'+(skipped?' skip-row':'')):(hasPlan?'srow planned':'srow');
   const anch=ANCH[st]?`<span class="badge">${ANCH[st]}</span>`:'';
-  let typeHtml='';
-  if(isWork&&showDone){
-    const types=gtypes(s);
-    const avail=TTYPES.filter(tp=>!types.includes(tp));
-    const tags=types.map(tp=>`<span class="ttag" style="${tstyle(tp)}">${tp}<button onclick="removeType('${t}','${tp}')" style="background:none;border:none;cursor:pointer;padding:0;font-size:9px;color:inherit;margin-left:2px;opacity:0.6">×</button></span>`).join('');
-    const popOpts=avail.map(tp=>`<button class="type-pop-opt" onclick="addType('${t}','${tp}');closePop('${t}')">${tp}</button>`).join('');
-    const addBtn=avail.length?`<button class="type-btn type-btn-add" title="Add type" onclick="togglePop('${t}',this)">+</button>`:'';
-    typeHtml=`<div class="type-row"><div class="type-pop">${popOpts}</div>${tags}${addBtn}</div>`;
-  }
-  const doneCell=showDone?`<div class="scell${!isWork?' last':''}"><div style="display:flex;flex-direction:column;width:100%">${typeHtml}<textarea class="sta" rows="1" maxlength="500" oninput="updSlot('${t}','done',this.value);autoGrow(this)" onblur="save()">${esc(s.done)}</textarea></div></div>`:'';
+  const doneCell=showDone?`<div class="scell${!isWork?' last':''}"><div style="display:flex;flex-direction:column;width:100%"><textarea class="sta" rows="1" maxlength="500" oninput="updSlot('${t}','done',this.value);autoGrow(this)" onblur="save()">${esc(s.done)}</textarea></div></div>`:'';
   return`<div class="${cls}${showDone?' with-done':''}${selMode&&selSet.has(t)?' sel-on':''}" id="sr-${t.replace(/:/g,'')}" data-t="${t}"${s.rec?' data-rec="1"':''}>
     <div class="stime">${st}<small>${en}</small>${anch}${selMode?selBox(t)+useBtn(t,s,1):useBtn(t,s)}</div>
     <div class="scell"><textarea class="sta" rows="1" maxlength="500" oninput="updSlot('${t}','plan',this.value);autoGrow(this)" onblur="save()">${esc(s.plan)}</textarea></div>
@@ -2254,8 +2220,7 @@ function toggleDone(){showDone=!showDone;ls('tm_showdone',showDone?'1':'');rende
 
 function updSlot(t,k,v){
   lastTypeAt=Date.now();
-  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
-  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  if(!slots[t])slots[t]={plan:'',done:''};
   slots[t][k]=v;
   dirty=true;slotTouched=loadedDk;
   const row=document.getElementById('sr-'+t.replace(/:/g,''));
@@ -2269,8 +2234,7 @@ function updSlot(t,k,v){
 
 function tickSlot(t){
   dirty=true;slotTouched=loadedDk;
-  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
-  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  if(!slots[t])slots[t]={plan:'',done:''};
   if(isDone(slots[t])){
     slots[t].done='';slots[t].skip=false;
   } else {
@@ -2292,8 +2256,7 @@ function redrawRow(t){
 
 function skipSlot(t){
   dirty=true;slotTouched=loadedDk;
-  if(!slots[t])slots[t]={plan:'',done:'',types:[]};
-  if(!Array.isArray(slots[t].types))slots[t].types=gtypes(slots[t]);
+  if(!slots[t])slots[t]={plan:'',done:''};
   slots[t].skip=!slots[t].skip;
   redrawRow(t);
   save();
@@ -2391,10 +2354,10 @@ function buildDayRows(dk,d){
   const date=fmtDate(dk);
   const rows=[...lp,...w,...lpo].map(t=>{
     const sl=s[t]||{};
-    return[date,cat[t],t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),gtypes(sl).join(', '),sl.use==='yes'?'Yes':''];
+    return[date,cat[t],t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),cat[t]==='Work'&&wkOf(sl)?WKSHORT[wkOf(sl)]:'',cat[t]==='Work'?(wkOf(sl)==='mgr'?'Yes':''):(sl.use==='yes'?'Yes':'')];
   });
   // entries saved under times that are outside the current wake/sleep grid (times changed later) must not be lost
-  Object.keys(s).filter(t=>!cat[t]&&dayHasContent({[t]:s[t]})).sort().forEach(t=>{const sl=s[t];rows.push([date,'Outside day times',t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),gtypes(sl).join(', '),sl.use==='yes'?'Yes':'']);});
+  Object.keys(s).filter(t=>!cat[t]&&dayHasContent({[t]:s[t]})).sort().forEach(t=>{const sl=s[t];rows.push([date,'Outside day times',t,(sl.plan||'').trim(),(sl.done||'').trim(),slotStatus(sl),'',sl.use==='yes'||wkOf(sl)==='mgr'?'Yes':'']);});
   return rows;
 }
 function dayHasMeta(d){const dt=d.dayTimes||{};return !!d.isHoliday||Object.keys(DEF).some(k=>validTime(dt[k])&&dt[k]!==DEF[k]);}
@@ -2633,7 +2596,7 @@ function applyRecurring(){   // fill today's / a future day's empty slots from t
       if(!grid.has(k))return;
       const x=slots[k];
       if(x&&(x.rec||slotHasContent(x)))return;   // already has something, or it was filled before and then cleared on purpose
-      slots[k]={...(x||{}),plan:r.t,done:(x&&x.done)||'',types:(x&&Array.isArray(x.types))?x.types:[],rec:r.id};ch=true;
+      slots[k]={...(x||{}),plan:r.t,done:(x&&x.done)||'',rec:r.id};ch=true;
     });
   });
   if(ch&&hydrated&&(!layout2||daysHydrated)){dirty=true;save();}
@@ -3120,8 +3083,8 @@ function cleanSlots(raw){
   const out={};if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;
   Object.keys(raw).forEach(k=>{
     if(!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(k))return;const x=raw[k];if(!x||typeof x!=='object'||Array.isArray(x))return;
-    const o={plan:typeof x.plan==='string'?x.plan.slice(0,5000):'',done:typeof x.done==='string'?x.done.slice(0,5000):'',types:gtypes(x)};
-    if(x.skip===true)o.skip=true;if(x.use==='yes')o.use='yes';if(typeof x.rec==='string'&&/^[\w-]{1,40}$/.test(x.rec))o.rec=x.rec;
+    const o={plan:typeof x.plan==='string'?x.plan.slice(0,5000):'',done:typeof x.done==='string'?x.done.slice(0,5000):'',};
+    if(x.skip===true)o.skip=true;if(x.use==='yes')o.use='yes';if(Object.prototype.hasOwnProperty.call(WKSHORT,x.wk))o.wk=x.wk;if(typeof x.rec==='string'&&/^[\w-]{1,40}$/.test(x.rec))o.rec=x.rec;
     out[k]=o;
   });
   return out;
