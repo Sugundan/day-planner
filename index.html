@@ -1070,7 +1070,7 @@ body.day-loading #sec-slots,body.day-loading #sec-intent{pointer-events:none;opa
 </div>
 
 <script>
-const BUILD='v11.2 — 27 Oct 2026';
+const BUILD='v11.3 — 28 Oct 2026';
 console.info('[Planner] build:',BUILD);
 // ── Firebase setup ────────────────────────────────────────
 firebase.initializeApp({
@@ -2662,7 +2662,7 @@ function normHabit(h){
   const days=[...new Set((Array.isArray(h.days)?h.days:[]).map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6))].sort();
   return{id:/^[\w-]{1,40}$/.test(String(h.id||''))?String(h.id):('h'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
     kind,name,type,target:type==='qty'?target:0,unit:type==='qty'?String(h.unit||'').trim().slice(0,20):'',
-    days:days.length===7?[]:days,created:HAB_DK.test(h.created||'')?h.created:ymd(new Date()),retired:HAB_DK.test(h.retired||'')?h.retired:''};
+    days:days.length===7?[]:days,created:(HAB_DK.test(h.created||'')&&h.created>='2000-01-01'&&h.created<='2100-12-31')?h.created:ymd(new Date()),retired:HAB_DK.test(h.retired||'')?h.retired:''};
 }
 function loadHab(){try{const a=JSON.parse(ls('tm_habits')||'[]');habits=habDedupe((Array.isArray(a)?a:[]).map(normHabit).filter(Boolean));}catch(e){habits=[];}}
 function saveHab(){ls('tm_habits',JSON.stringify(habits));ls('tm_hab_unsynced','1');dirtyHab=true;syncHab();}
@@ -2694,9 +2694,10 @@ function habSt(h,e){   // 'done' | 'miss' | 'skip' | 'none'
 }
 function habStats(h,m){   // a skipped day neither adds to nor breaks the streak; an unlogged past day breaks it; today stays open until you log it
   const today=ymd(new Date()),last=h.retired?habAdd(h.retired,-1):today,s={done:0,miss:0,skip:0,cur:0,best:0,qty:0,qn:0};
-  let run=0;
+  let run=0;const ws=winStart();
   for(let dk=h.created;dk<=last;dk=habAdd(dk,1)){
     if(!habApplies(h,dk))continue;
+    if(dk<ws&&!m[dk])continue;   // older than the loaded window and not fetched: unknown, not a miss
     const e=(m[dk]||{})[h.id],st=habSt(h,e);
     if(h.type==='qty'&&e&&typeof e.n==='number'&&st!=='skip'){s.qty+=e.n;s.qn++;}
     if(st==='done'){s.done++;run++;if(run>s.best)s.best=run;}
