@@ -368,6 +368,14 @@ body.desk #ideal-container{display:block}
 .gl-row:first-child{border-top:none}
 .gl-txt{flex:1;min-width:0;text-align:left;border:none;background:transparent;color:var(--text);font-family:inherit;font-size:14px;line-height:1.4;padding:10px 6px 10px 12px;cursor:pointer;overflow-wrap:anywhere;white-space:pre-wrap}
 .gl-ord{display:flex;flex-direction:column;flex-shrink:0}
+.gl-tick{border:none;background:transparent;padding:8px 0 8px 10px;cursor:pointer;display:flex;flex-shrink:0;color:var(--text3);font-size:22px}
+.gl-tick .ti{width:22px;height:22px;border:2px solid currentColor;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-sizing:border-box}
+.gl-tick .ti::before{opacity:0}
+.gl-tick.on{color:var(--green)}
+.gl-tick.on .ti{background:var(--green);border-color:var(--green);color:#fff}
+.gl-tick.on .ti::before{opacity:1}
+.gl-row.is-done .gl-txt{text-decoration:line-through;color:var(--text3);font-weight:400}
+.gl-tick+.gl-txt{padding-left:8px}
 .rvp-del{border:none;background:transparent;color:var(--red);font-weight:700;font-family:inherit;font-size:14px;cursor:pointer;padding:10px}
 .rvp-nav{display:flex;gap:10px;margin-top:auto;padding-top:22px}
 .rvp-nav button{flex:1;margin:0}
@@ -3738,7 +3746,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // Intention list used on the Day page and on Week / Month / Year: names outside, an icon opens the full page, new ones are typed in the box at the bottom
 function glList(kind,day,empty){
   const key=gKey(kind,day),g=pts(key),vis=g.map((p,i)=>i).filter(i=>g[i].t.trim()),d=day?1:0;
-  const rows=vis.map((i,n)=>`<div class="gl-row"><button class="gl-txt" onclick="openGoalEdit('${kind}',${i},${d})">${esc(g[i].t)}${sinceTag(g[i])}</button><button class="gl-open${(g[i].d||'').trim()?' has':''}" onclick="openGoalEdit('${kind}',${i},${d})" aria-label="Open intention" title="${(g[i].d||'').trim()?'Open details':'Add details'}"><i class="ti ti-file-text"></i></button><span class="gl-ord"><button class="pt-mv" ${n===0?'disabled':''} onclick="gMove('${kind}',${i},-1,${d})" aria-label="Move up"><i class="ti ti-chevron-up"></i></button><button class="pt-mv" ${n===vis.length-1?'disabled':''} onclick="gMove('${kind}',${i},1,${d})" aria-label="Move down"><i class="ti ti-chevron-down"></i></button></span></div>`).join('');
+  const rows=vis.map((i,n)=>`<div class="gl-row${g[i].s==='done'?' is-done':''}"><button class="gl-tick${g[i].s==='done'?' on':''}" onclick="setPointStatus('${key}',${i},'done')" aria-label="${g[i].s==='done'?'Mark not done':'Mark done'}" aria-pressed="${g[i].s==='done'?'true':'false'}" title="${g[i].s==='done'?'Done — tap to undo':'Tick when done'}"><i class="ti ti-check"></i></button><button class="gl-txt" onclick="openGoalEdit('${kind}',${i},${d})">${esc(g[i].t)}${g[i].s==='done'?'':sinceTag(g[i])}</button><button class="gl-open${(g[i].d||'').trim()?' has':''}" onclick="openGoalEdit('${kind}',${i},${d})" aria-label="Open intention" title="${(g[i].d||'').trim()?'Open details':'Add details'}"><i class="ti ti-file-text"></i></button><span class="gl-ord"><button class="pt-mv" ${n===0?'disabled':''} onclick="gMove('${kind}',${i},-1,${d})" aria-label="Move up"><i class="ti ti-chevron-up"></i></button><button class="pt-mv" ${n===vis.length-1?'disabled':''} onclick="gMove('${kind}',${i},1,${d})" aria-label="Move down"><i class="ti ti-chevron-down"></i></button></span></div>`).join('');
   const full=vis.length>=MAXPTS;
   return (rows||`<div class="rv-text empty" style="padding:10px 12px">${esc(empty)}</div>`)+(full?'':`<div class="gl-add"><input class="gl-in" id="gla-${key}" maxlength="200" enterkeyhint="done" placeholder="Add intention…" onkeydown="if(event.key==='Enter'){event.preventDefault();glAdd('${kind}',${d},this)}" onblur="glAdd('${kind}',${d},this,1)"><button class="gl-plus" onmousedown="event.preventDefault()" onclick="glAdd('${kind}',${d},this.previousElementSibling)" aria-label="Add"><i class="ti ti-plus"></i></button></div>`);
 }
